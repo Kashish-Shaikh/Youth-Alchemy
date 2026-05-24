@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appointments Admin — Youth Alchemy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7F5; --fg:#1a1a1a; --muted:#6b6b6b;
+  --card:#fff; --border:rgba(0,0,0,.08);
+  --primary:#92B4A0; --pink:#F8BBD0; --pink-hover:#F48FB1;
+  --font-sans:'DM Sans',sans-serif; --font-serif:'Playfair Display',serif;
+  --radius:14px; --shadow:0 2px 14px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-serif)}
+
+/* LOGIN GATE */
+#loginGate{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--card);border-radius:20px;padding:40px;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.login-box h2{font-size:1.5rem;margin-bottom:8px}
+.login-box p{color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.login-box input{width:100%;height:44px;border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-family:var(--font-sans);font-size:.9rem;margin-bottom:14px;outline:none;transition:border-color .2s}
+.login-box input:focus{border-color:var(--primary)}
+.login-box button{width:100%;height:44px;background:var(--pink);border:none;border-radius:999px;font-family:var(--font-sans);font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s}
+.login-box button:hover{background:var(--pink-hover)}
+.login-err{color:#e57373;font-size:.82rem;margin-top:8px}
+
+/* SIDEBAR */
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-brand{padding:24px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-brand span{font-family:var(--font-serif);font-size:1.1rem}
+.sidebar-brand small{display:block;font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.snav{padding:10px 14px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:8px;border:none;background:none;width:100%;text-align:left}
+.snav:hover{background:rgba(146,180,160,.1);color:var(--fg)}
+.snav.active{background:rgba(146,180,160,.15);color:var(--primary)}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);font-size:.78rem;color:var(--muted)}
+
+/* MAIN */
+#main{margin-left:220px;padding:32px;min-height:100vh}
+@media(max-width:680px){#sidebar{display:none}#main{margin-left:0;padding:16px}}
+
+/* HEADER */
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.page-head h1{font-size:1.6rem;font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:.75rem;font-weight:700;letter-spacing:.04em}
+.badge.green{background:rgba(146,180,160,.15);color:#3d7a5e}
+.badge.pink{background:rgba(248,187,208,.25);color:#b05070}
+.badge.orange{background:rgba(255,183,77,.15);color:#a06020}
+.badge.grey{background:#f0f0f0;color:#888}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow)}
+.stat-card .num{font-family:var(--font-serif);font-size:2rem;font-weight:700;color:var(--primary);line-height:1}
+.stat-card .lbl{font-size:.78rem;color:var(--muted);margin-top:6px;font-weight:600}
+
+/* CONTROLS */
+.controls{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.search-box{flex:1;min-width:180px;max-width:320px;height:38px;border:1.5px solid var(--border);border-radius:999px;padding:0 16px;font-family:var(--font-sans);font-size:.85rem;outline:none;transition:border-color .2s;background:var(--card)}
+.search-box:focus{border-color:var(--primary)}
+select.filter-sel{height:38px;border:1.5px solid var(--border);border-radius:999px;padding:0 14px;font-family:var(--font-sans);font-size:.82rem;font-weight:600;outline:none;background:var(--card);cursor:pointer;color:var(--fg)}
+.btn-sm{height:36px;padding:0 16px;border:1.5px solid var(--border);border-radius:999px;font-family:var(--font-sans);font-size:.8rem;font-weight:700;cursor:pointer;background:var(--card);transition:all .15s}
+.btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm.pink{background:var(--pink);border-color:var(--pink)}
+.btn-sm.pink:hover{background:var(--pink-hover)}
+.ml-auto{margin-left:auto}
+
+/* TABLE */
+.table-wrap{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{padding:12px 16px;text-align:left;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:#fafafa}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(146,180,160,.04)}
+tbody tr:last-child{border-bottom:none}
+td{padding:14px 16px;font-size:.88rem;vertical-align:middle}
+td.muted{color:var(--muted)}
+.appt-id{font-family:monospace;font-size:.78rem;color:var(--muted)}
+
+/* STATUS PILL */
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
+.pill.pending{background:rgba(255,183,77,.15);color:#a06020}
+.pill.confirmed{background:rgba(146,180,160,.15);color:#3d7a5e}
+.pill.cancelled{background:#f5f5f5;color:#999}
+.pill.completed{background:rgba(100,130,255,.1);color:#4050c8}
+
+/* ACTIONS */
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.act-btn{padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:var(--font-sans)}
+.act-btn.confirm{background:rgba(146,180,160,.12);color:#3d7a5e;border-color:rgba(146,180,160,.3)}
+.act-btn.confirm:hover{background:rgba(146,180,160,.25)}
+.act-btn.cancel{background:rgba(229,115,115,.1);color:#c62828;border-color:rgba(229,115,115,.25)}
+.act-btn.cancel:hover{background:rgba(229,115,115,.2)}
+.act-btn.complete{background:rgba(100,130,255,.1);color:#4050c8;border-color:rgba(100,130,255,.25)}
+.act-btn.complete:hover{background:rgba(100,130,255,.2)}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .icon{font-size:3rem;margin-bottom:16px}
+.empty h3{font-family:var(--font-serif);font-size:1.2rem;margin-bottom:8px;color:var(--fg)}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:10px;font-size:.85rem;transform:translateY(60px);opacity:0;transition:.3s;z-index:999;max-width:300px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.error{background:#c62828}
+#toast.ok{background:#388e3c}
+
+/* LOADING */
+.loading-row td{text-align:center;padding:40px;color:var(--muted);font-style:italic}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="loginGate">
+  <div class="login-box">
+    <div style="font-size:2rem;margin-bottom:12px">🌿</div>
+    <h2>Admin Login</h2>
+    <p>Youth Alchemy — Appointments Dashboard</p>
+    <input type="password" id="tokenInput" placeholder="Enter admin token" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Access Dashboard</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <span>Youth Alchemy</span>
+    <small>Admin Panel</small>
+  </div>
+  <div class="sidebar-nav">
+    <button class="snav active">📅 Appointments</button>
+  </div>
+  <div class="sidebar-footer">
+    <div id="adminTokenLabel" style="margin-bottom:6px"></div>
+    <button class="btn-sm" onclick="doLogout()">Logout</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+  <div class="page-head">
+    <div>
+      <h1>Appointments</h1>
+      <p style="color:var(--muted);font-size:.85rem;margin-top:4px" id="lastRefresh"></p>
+    </div>
+    <button class="btn-sm pink" onclick="loadAppointments()">↻ Refresh</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" id="statTotal">—</div><div class="lbl">Total Booked</div></div>
+    <div class="stat-card"><div class="num" id="statPending">—</div><div class="lbl">Pending</div></div>
+    <div class="stat-card"><div class="num" id="statConfirmed">—</div><div class="lbl">Confirmed</div></div>
+    <div class="stat-card"><div class="num" id="statToday">—</div><div class="lbl">Today</div></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <input class="search-box" type="search" id="searchBox" placeholder="🔍 Search name, email, phone…" oninput="applyFilters()">
+    <select class="filter-sel" id="statusFilter" onchange="applyFilters()">
+      <option value="">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="cancelled">Cancelled</option>
+      <option value="completed">Completed</option>
+    </select>
+    <input type="date" class="filter-sel" id="dateFilter" style="padding:0 10px" onchange="applyFilters()">
+    <button class="btn-sm ml-auto" onclick="clearFilters()">Clear Filters</button>
+    <button class="btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table id="apptTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Patient</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Booked At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr class="loading-row"><td colspan="9">Loading appointments…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const API = '';
+let ADMIN_TOKEN = '';
+let ALL_APPTS = [];
+
+// ── AUTH ──────────────────────────────────────────
+async function doLogin(){
+  const tok = document.getElementById('tokenInput').value.trim();
+  if(!tok){ document.getElementById('loginErr').textContent = 'Enter the admin token.'; return; }
+  // Try a real request to validate token
+  try{
+    const r = await fetch(`${API}/api/appointments`, { headers:{'X-Admin-Token': tok} });
+    const data = await r.json();
+    if(!data.success){ document.getElementById('loginErr').textContent = 'Invalid token. Try again.'; return; }
+    ADMIN_TOKEN = tok;
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('adminTokenLabel').textContent = 'Token: ' + tok.slice(0,8) + '…';
+    loadAppointments(data);
+  }catch(e){
+    document.getElementById('loginErr').textContent = 'Server unreachable. Make sure Flask is running on port 5000.';
+  }
+}
+function doLogout(){ ADMIN_TOKEN=''; ALL_APPTS=[]; location.reload(); }
+
+// ── LOAD ──────────────────────────────────────────
+async function loadAppointments(preloaded){
+  document.getElementById('tableBody').innerHTML = '<tr class="loading-row"><td colspan="9">Loading…</td></tr>';
+  try{
+    let data = preloaded;
+    if(!data){
+      const r = await fetch(`${API}/api/appointments`, { headers:{'X-Admin-Token': ADMIN_TOKEN} });
+      data = await r.json();
+      if(!data.success) throw new Error(data.error);
+    }
+    ALL_APPTS = data.appointments || [];
+    computeStats();
+    applyFilters();
+    document.getElementById('lastRefresh').textContent = 'Last refreshed: ' + new Date().toLocaleTimeString();
+  }catch(e){
+    document.getElementById('tableBody').innerHTML = `<tr class="loading-row"><td colspan="9" style="color:#e57373">${e.message}</td></tr>`;
+  }
+}
+
+function computeStats(){
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('statTotal').textContent = ALL_APPTS.length;
+  document.getElementById('statPending').textContent = ALL_APPTS.filter(a=>a.status==='pending').length;
+  document.getElementById('statConfirmed').textContent = ALL_APPTS.filter(a=>a.status==='confirmed').length;
+  document.getElementById('statToday').textContent = ALL_APPTS.filter(a=>a.date===today).length;
+}
+
+// ── FILTERS ───────────────────────────────────────
+function applyFilters(){
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const sf = document.getElementById('statusFilter').value;
+  const df = document.getElementById('dateFilter').value;
+  let list = ALL_APPTS;
+  if(q) list = list.filter(a => (a.name+a.email+a.phone).toLowerCase().includes(q));
+  if(sf) list = list.filter(a => a.status === sf);
+  if(df) list = list.filter(a => a.date === df);
+  renderTable(list);
+}
+function clearFilters(){
+  document.getElementById('searchBox').value='';
+  document.getElementById('statusFilter').value='';
+  document.getElementById('dateFilter').value='';
+  applyFilters();
+}
+
+// ── TABLE ─────────────────────────────────────────
+function renderTable(list){
+  const tbody = document.getElementById('tableBody');
+  if(!list.length){
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="icon">📅</div><h3>No appointments found</h3><p>Try adjusting your filters.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(a => `
+    <tr>
+      <td class="appt-id">#${a.id}</td>
+      <td><strong>${formatDate(a.date)}</strong></td>
+      <td>${a.time}</td>
+      <td>${esc(a.name)}</td>
+      <td class="muted">${esc(a.email)}</td>
+      <td class="muted">${esc(a.phone)}</td>
+      <td><span class="pill ${a.status}">${a.status}</span></td>
+      <td class="muted" style="font-size:.78rem">${formatCreatedAt(a.created_at)}</td>
+      <td>
+        <div class="actions">
+          ${a.status!=='confirmed'&&a.status!=='cancelled'?`<button class="act-btn confirm" onclick="updateStatus(${a.id},'confirmed')">Confirm</button>`:''}
+          ${a.status!=='cancelled'?`<button class="act-btn cancel" onclick="updateStatus(${a.id},'cancelled')">Cancel</button>`:''}
+          ${a.status==='confirmed'?`<button class="act-btn complete" onclick="updateStatus(${a.id},'completed')">Done</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+// ── STATUS UPDATE ─────────────────────────────────
+async function updateStatus(id, status){
+  try{
+    const r = await fetch(`${API}/api/appointments/${id}/status`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','X-Admin-Token':ADMIN_TOKEN},
+      body: JSON.stringify({status})
+    });
+    const data = await r.json();
+    if(!data.success) throw new Error(data.error);
+    const appt = ALL_APPTS.find(a=>a.id===id);
+    if(appt) appt.status = status;
+    computeStats(); applyFilters();
+    showToast(`Appointment #${id} marked as ${status}`, 'ok');
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+// ── EXPORT ────────────────────────────────────────
+function exportCSV(){
+  const headers = ['ID','Date','Time','Name','Email','Phone','Status','Booked At'];
+  const rows = ALL_APPTS.map(a => [a.id, a.date, a.time, a.name, a.email, a.phone, a.status, a.created_at].map(v=>`"${v}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `youthalchemy_appointments_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── HELPERS ───────────────────────────────────────
+function formatDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+function formatCreatedAt(str){
+  if(!str) return '—';
+  const d = new Date(str);
+  return isNaN(d) ? str : d.toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+let _tt;
+function showToast(msg, type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show'+(type?' '+type:'');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.className='',3500);
+}
+
+// Enter key on login
+document.getElementById('tokenInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>

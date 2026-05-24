@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YouthAlchemy — Skin Progress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS — exact match to main app
+══════════════════════════════════════════ */
+:root {
+  --bg:          hsl(40,20%,97%);
+  --fg:          hsl(150,10%,15%);
+  --card:        #ffffff;
+  --primary:     hsl(146,25%,45%);
+  --primary-lt:  hsl(146,25%,95%);
+  --secondary:   hsl(25,30%,90%);
+  --muted:       hsl(150,5%,90%);
+  --muted-fg:    hsl(150,5%,45%);
+  --border:      hsl(150,10%,90%);
+  --pink:        #F8BBD0;
+  --pink-hover:  #F48FB1;
+  --pink-dark:   #4A2E2A;
+  --green:       hsl(146,35%,45%);
+  --amber:       hsl(40,80%,52%);
+  --red:         hsl(0,65%,55%);
+  --font-sans:   'DM Sans', sans-serif;
+  --font-serif:  'Playfair Display', serif;
+  --radius:      14px;
+  --shadow:      0 2px 20px rgba(0,0,0,.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6;}
+h1,h2,h3,h4{font-family:var(--font-serif);}
+a{text-decoration:none;color:inherit;}
+
+/* ── TOPNAV ── */
+#topnav {
+  position:sticky;top:0;z-index:100;
+  background:rgba(251,248,244,.88);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  height:68px;display:flex;align-items:center;
+}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:16px;width:100%;}
+.nav-brand{display:flex;align-items:center;gap:9px;font-family:var(--font-serif);font-size:1.2rem;color:var(--fg);}
+.nav-brand-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--primary),hsl(146,35%,38%));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;}
+.nav-sep{width:1px;height:22px;background:var(--border);margin:0 4px;}
+.nav-page-name{font-size:.82rem;font-weight:600;letter-spacing:.04em;color:var(--muted-fg);}
+.nav-spacer{flex:1;}
+.nav-user{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:600;}
+.nav-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;}
+.nav-back{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px;border:1px solid var(--border);border-radius:999px;font-size:.82rem;font-weight:500;color:var(--muted-fg);transition:all .18s;background:#fff;}
+.nav-back:hover{border-color:var(--primary);color:var(--primary);}
+.nav-back svg{width:14px;height:14px;}
+.nav-scan-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 18px;background:var(--pink);border:none;border-radius:999px;font-family:var(--font-sans);font-size:.83rem;font-weight:600;color:#111;cursor:pointer;transition:background .2s;}
+.nav-scan-btn:hover{background:var(--pink-hover);}
+
+/* ── LAYOUT ── */
+.page-wrap{max-width:1280px;margin:0 auto;padding:32px 28px 60px;}
+
+/* ── HERO HEADER ── */
+.progress-header{margin-bottom:36px;}
+.progress-eyebrow{font-size:.73rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.progress-eyebrow svg{width:13px;height:13px;}
+.progress-title{font-size:clamp(1.7rem,3vw,2.4rem);font-weight:500;margin-bottom:10px;line-height:1.15;}
+.progress-sub{font-size:.92rem;color:var(--muted-fg);max-width:520px;line-height:1.7;}
+.progress-meta{display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap;}
+.meta-pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;padding:5px 14px;border-radius:999px;background:var(--card);border:1px solid var(--border);}
+.meta-pill.green{background:rgba(146,180,160,.12);border-color:rgba(146,180,160,.3);color:var(--green);}
+.meta-pill.amber{background:rgba(255,193,7,.1);border-color:rgba(255,193,7,.3);color:hsl(40,80%,40%);}
+.meta-pill.red{background:rgba(239,83,80,.08);border-color:rgba(239,83,80,.2);color:var(--red);}
+.meta-pill svg{width:12px;height:12px;}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:520px){.stats-row{grid-template-columns:1fr 1fr;gap:12px;}}
+
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 20px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.09);}
+.stat-card-glow{position:absolute;top:-28px;right:-28px;width:90px;height:90px;border-radius:50%;opacity:.12;}
+.stat-lbl{font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:8px;}
+.stat-val{font-family:var(--font-serif);font-size:2.1rem;font-weight:600;line-height:1;margin-bottom:5px;}
+.stat-val.primary{color:var(--primary);}
+.stat-val.amber{color:var(--amber);}
+.stat-val.red{color:var(--red);}
+.stat-sub{font-size:.77rem;color:var(--muted-fg);display:flex;align-items:center;gap:4px;}
+.stat-sub .arrow-up{color:var(--green);}
+.stat-sub .arrow-dn{color:var(--red);}
+.stat-icon-bg{position:absolute;bottom:14px;right:16px;width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
+.card-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.card-title{font-family:var(--font-sans);font-size:.95rem;font-weight:700;}
+.card-desc{font-size:.78rem;color:var(--muted-fg);margin-top:2px;}
+.card-body{padding:24px;}
+
+/* ── RANGE TABS ── */
+.range-tabs{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px;gap:2px;}
+.range-tab{padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted-fg);transition:all .18s;font-family:var(--font-sans);}
+.range-tab.active{background:var(--card);color:var(--primary);box-shadow:0 1px 6px rgba(0,0,0,.08);}
+
+/* ── MAIN CHART ── */
+.main-chart-wrap{position:relative;height:320px;}
+@media(max-width:600px){.main-chart-wrap{height:220px;}}
+
+/* ── CONCERN SELECTOR ── */
+.concern-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.concern-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .18s;color:var(--muted-fg);}
+.concern-pill:hover{border-color:rgba(146,180,160,.5);}
+.concern-pill.active{border-color:var(--primary);color:var(--primary);background:var(--primary-lt);}
+.concern-pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.7;}
+.multi-chart-wrap{position:relative;height:260px;}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;align-items:stretch;gap:0;cursor:pointer;}
+.tl-item:hover .tl-content{background:hsl(40,20%,95%);}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:44px;flex-shrink:0;padding-top:4px;}
+.tl-dot{width:12px;height:12px;border-radius:50%;border:2.5px solid var(--primary);background:#fff;flex-shrink:0;transition:all .2s;}
+.tl-item.latest .tl-dot{background:var(--primary);}
+.tl-line{flex:1;width:2px;background:var(--border);margin:4px 0;}
+.tl-item:last-child .tl-line{display:none;}
+.tl-content{flex:1;padding:12px 16px;margin:0 0 8px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);transition:background .18s;}
+.tl-item.latest .tl-content{border-color:rgba(146,180,160,.4);background:var(--primary-lt);}
+.tl-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.tl-date{font-size:.75rem;color:var(--muted-fg);font-weight:500;}
+.tl-badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;}
+.tl-badge.latest-badge{background:var(--primary);color:#fff;}
+.tl-badge.old-badge{background:var(--muted);color:var(--muted-fg);}
+.tl-score-row{display:flex;align-items:baseline;gap:6px;margin:5px 0;}
+.tl-score-big{font-family:var(--font-serif);font-size:1.5rem;font-weight:600;}
+.tl-score-grade{font-size:.82rem;font-weight:700;padding:2px 8px;border-radius:6px;}
+.tl-delta{font-size:.77rem;font-weight:700;display:flex;align-items:center;gap:3px;}
+.tl-delta.pos{color:var(--green);}
+.tl-delta.neg{color:var(--red);}
+.tl-concerns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tl-chip{font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.05);color:var(--muted-fg);}
+
+/* ── IMPROVEMENT BANNER ── */
+.improvement-banner{border-radius:var(--radius);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px;overflow:hidden;position:relative;}
+.improvement-banner.positive{background:linear-gradient(135deg,hsl(146,30%,90%) 0%,hsl(146,20%,94%) 100%);border:1px solid rgba(146,180,160,.3);}
+.improvement-banner.negative{background:linear-gradient(135deg,hsl(0,30%,95%) 0%,hsl(25,30%,96%) 100%);border:1px solid rgba(239,83,80,.15);}
+.improvement-banner.neutral{background:var(--secondary);border:1px solid var(--border);}
+.ib-text{}
+.ib-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:5px;}
+.ib-title{font-size:1.3rem;font-weight:600;margin-bottom:4px;}
+.ib-sub{font-size:.83rem;color:var(--muted-fg);line-height:1.6;}
+.ib-stat{text-align:right;}
+.ib-pct{font-family:var(--font-serif);font-size:3rem;font-weight:600;line-height:1;}
+.ib-pct.pos{color:var(--green);}
+.ib-pct.neg{color:var(--red);}
+.ib-pct-label{font-size:.78rem;color:var(--muted-fg);margin-top:2px;}
+.ib-orb{position:absolute;top:-40px;right:160px;width:120px;height:120px;border-radius:50%;opacity:.15;}
+.ib-orb.positive{background:var(--green);}
+.ib-orb.negative{background:var(--red);}
+
+/* ── GRADE RING ── */
+.grade-ring{width:56px;height:56px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.grade-ring .score{font-family:var(--font-serif);font-size:1.1rem;font-weight:600;line-height:1;}
+.grade-ring .grade{font-size:.62rem;color:var(--muted-fg);}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+.one-col{margin-bottom:20px;}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:56px 24px;}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:14px;}
+.empty-state h3{font-size:1.3rem;margin-bottom:8px;}
+.empty-state p{font-size:.88rem;color:var(--muted-fg);max-width:340px;margin:0 auto 22px;line-height:1.7;}
+.btn-pink{height:44px;padding:0 26px;background:var(--pink);color:#111;border:none;border-radius:999px;font-family:var(--font-sans);font-size:.9rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .2s;box-shadow:0 2px 12px rgba(248,187,208,.4);}
+.btn-pink:hover{background:var(--pink-hover);}
+
+/* ── LOGIN GATE ── */
+#login-gate{display:none;min-height:80vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px;}
+#login-gate .gate-icon{font-size:3.5rem;margin-bottom:20px;}
+#login-gate h2{font-size:1.9rem;margin-bottom:10px;}
+#login-gate p{color:var(--muted-fg);max-width:380px;margin:0 auto 28px;line-height:1.7;}
+
+/* ── LOADING ── */
+.skeleton{background:linear-gradient(90deg,hsl(150,10%,93%) 25%,hsl(150,10%,89%) 50%,hsl(150,10%,93%) 75%);background-size:200%;animation:shimmer 1.4s infinite;border-radius:8px;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.sk-h{height:20px;margin-bottom:10px;width:60%;}
+.sk-chart{height:280px;border-radius:var(--radius);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:.85rem;box-shadow:0 4px 20px rgba(0,0,0,.1);transform:translateY(60px);opacity:0;transition:all .28s;pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .page-wrap{padding:20px 16px 48px;}
+  .card-body{padding:16px;}
+  .card-head{padding:14px 16px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
+  .stat-card{padding:16px;}
+  .stat-val{font-size:1.7rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ TOPNAV ══════════════════════ -->
+<nav id="topnav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-brand-icon">🌿</div>
+      YouthAlchemy
+    </div>
+    <div class="nav-sep"></div>
+    <span class="nav-page-name">Skin Progress</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-user" id="nav-user" style="display:none;">
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <span id="nav-name"></span>
+    </div>
+    <a class="nav-back" href="/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Home
+    </a>
+    <button class="nav-scan-btn" onclick="goToScan()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+      New Scan
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════ LOGIN GATE ══════════════════ -->
+<div id="login-gate">
+  <div class="gate-icon">🔒</div>
+  <h2>Sign in to see your progress</h2>
+  <p>Your skin transformation data is private. Log in to view your scan history, scores, and improvement trends.</p>
+  <a href="/" class="btn-pink">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke-linecap="round"/></svg>
+    Log In
+  </a>
+</div>
+
+<!-- ══════════════ MAIN PAGE ══════════════════ -->
+<div id="progress-page" style="display:none;">
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="progress-header">
+    <div class="progress-eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Skin Transformation
+    </div>
+    <h1 class="progress-title">Your Skin Progress</h1>
+    <p class="progress-sub">Track how your skin health changes over time — every scan is a data point on your journey to clearer, healthier skin.</p>
+    <div class="progress-meta" id="progress-meta"></div>
+  </div>
+
+  <!-- Improvement Banner -->
+  <div id="improvement-banner" style="display:none;"></div>
+
+  <!-- Stat Cards -->
+  <div class="stats-row" id="stats-row">
+    <!-- skeleton -->
+    <div class="stat-card"><div class="skeleton sk-h"></div><div class="skeleton" style="height:40px;width:70%;margin-bottom:8px;"></div><div class="skeleton sk-h" style="width:80%;"></div></div>
+    <div class="stat-card"><div class="skeleton sk-h"></div><div class="skeleton" style="height:40px;width:70%;margin-bottom:8px;"></div><div class="skeleton sk-h" style="width:80%;"></div></div>
+    <div class="stat-card"><div class="skeleton sk-h"></div><div class="skeleton" style="height:40px;width:70%;margin-bottom:8px;"></div><div class="skeleton sk-h" style="width:80%;"></div></div>
+    <div class="stat-card"><div class="skeleton sk-h"></div><div class="skeleton" style="height:40px;width:70%;margin-bottom:8px;"></div><div class="skeleton sk-h" style="width:80%;"></div></div>
+  </div>
+
+  <!-- Main Score Trend Chart -->
+  <div class="card one-col" id="main-chart-card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Overall Skin Health Score</div>
+        <div class="card-desc">Your skin score over time (0 = severe concerns · 100 = perfect skin)</div>
+      </div>
+      <div class="range-tabs" id="range-tabs">
+        <button class="range-tab" onclick="setRange(7,this)">7D</button>
+        <button class="range-tab" onclick="setRange(30,this)">30D</button>
+        <button class="range-tab active" onclick="setRange(90,this)">90D</button>
+        <button class="range-tab" onclick="setRange(0,this)">All</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="skeleton sk-chart" id="main-chart-skeleton"></div>
+      <div class="main-chart-wrap" id="main-chart-wrap" style="display:none;">
+        <canvas id="mainChart"></canvas>
+      </div>
+      <div class="empty-state" id="main-chart-empty" style="display:none;">
+        <div class="empty-icon">📈</div>
+        <h3>No scans yet</h3>
+        <p>Complete your first face scan to see your skin score trend appear here.</p>
+        <button class="btn-pink" onclick="goToScan()">Scan My Face →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two col: concern breakdown + grade distribution -->
+  <div class="two-col">
+
+    <!-- Per-concern breakdown chart -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Concern Severity Trends</div>
+          <div class="card-desc">Toggle concerns to compare their improvement</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="concern-pills" id="concern-pills"></div>
+        <div class="multi-chart-wrap"><canvas id="concernChart"></canvas></div>
+        <div class="empty-state" id="concern-empty" style="display:none;padding:30px 0;">
+          <div class="empty-icon" style="font-size:2rem;">🔬</div>
+          <p style="margin-bottom:0;">Scan your face to see concern analysis.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grade distribution doughnut -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Grade Distribution</div>
+          <div class="card-desc">How often you've hit each grade across all scans</div>
+        </div>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div style="position:relative;height:200px;width:200px;">
+          <canvas id="gradeChart"></canvas>
+          <div id="grade-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+            <div style="font-family:var(--font-serif);font-size:1.8rem;font-weight:600;color:var(--primary);" id="grade-center-val">—</div>
+            <div style="font-size:.72rem;color:var(--muted-fg);">common grade</div>
+          </div>
+        </div>
+        <div id="grade-legend" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scan Timeline -->
+  <div class="card one-col">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Scan Timeline</div>
+        <div class="card-desc">Every scan with score, grade, and detected concerns</div>
+      </div>
+      <span id="scan-count-badge" style="font-size:.78rem;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--primary-lt);color:var(--primary);"></span>
+    </div>
+    <div class="card-body">
+      <div id="timeline-wrap"></div>
+      <div class="empty-state" id="timeline-empty" style="display:none;">
+        <div class="empty-icon">📷</div>
+        <h3>No scans recorded</h3>
+        <p>Each face scan you take is logged here. Start scanning to build your skin history.</p>
+        <button class="btn-pink" onclick="goToScan()">Take First Scan →</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+</div><!-- /progress-page -->
+
+<div id="toast"></div>
+
+<!-- ══════════════ SCRIPT ══════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════
+   STATE & CONSTANTS
+═══════════════════════════════════════════════ */
+const TOKEN = localStorage.getItem('dermiq_token');
+const USER  = JSON.parse(localStorage.getItem('dermiq_user') || 'null');
+
+const CONCERN_META = {
+  acne:             { label:'Acne',             color:'hsl(0,70%,60%)',    emoji:'🔴' },
+  hyperpigmentation:{ label:'Hyperpigmentation', color:'hsl(280,40%,55%)', emoji:'🟣' },
+  dark_circles:     { label:'Dark Circles',      color:'hsl(220,50%,50%)', emoji:'🔵' },
+  wrinkles:         { label:'Wrinkles',          color:'hsl(40,80%,52%)',  emoji:'🟡' },
+  redness:          { label:'Redness',           color:'hsl(10,70%,55%)',  emoji:'🟠' },
+  texture:          { label:'Texture',           color:'hsl(170,50%,45%)', emoji:'🟢' },
+  pores:            { label:'Pores',             color:'hsl(200,60%,50%)', emoji:'🔷' },
+};
+
+const GRADE_COLORS = {
+  A:'hsl(146,35%,50%)', B:'hsl(80,40%,42%)',
+  C:'hsl(45,70%,48%)', D:'hsl(28,70%,50%)', F:'hsl(0,60%,50%)'
+};
+
+let ALL_SCANS = [];     // full history (newest first)
+let RANGE_DAYS = 90;    // currently selected range
+let ACTIVE_CONCERNS = new Set(['acne','hyperpigmentation','dark_circles']);
+let CHARTS = {};        // chart instances
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', async () => {
+  if (!TOKEN || !USER) {
+    document.getElementById('login-gate').style.display = 'flex';
+    return;
+  }
+
+  // Show nav user info
+  document.getElementById('nav-user').style.display = 'flex';
+  const initials = USER.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('nav-avatar').textContent = initials;
+  document.getElementById('nav-name').textContent   = USER.name.split(' ')[0];
+
+  document.getElementById('progress-page').style.display = 'block';
+
+  await fetchScanHistory();
+});
+
+/* ═══════════════════════════════════════════════
+   FETCH
+═══════════════════════════════════════════════ */
+async function fetchScanHistory() {
+  try {
+    const r = await fetch('/api/scan-history', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+
+    if (r.status === 401) { redirectToLogin(); return; }
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed to load history');
+
+    ALL_SCANS = d.scans || [];
+    renderAll();
+  } catch(e) {
+    showToast('Could not load scan history: ' + e.message);
+    // Show empty states
+    renderAll();
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER ORCHESTRATOR
+═══════════════════════════════════════════════ */
+function renderAll() {
+  const filtered = getFilteredScans();
+  renderHeader(filtered);
+  renderImprovementBanner(filtered);
+  renderStatCards(filtered);
+  renderMainChart(filtered);
+  renderConcernPills(filtered);
+  renderConcernChart(filtered);
+  renderGradeChart(filtered);
+  renderTimeline();
+}
+
+/* ─── Filter scans by selected range ─────────── */
+function getFilteredScans() {
+  if (!RANGE_DAYS || RANGE_DAYS === 0) return [...ALL_SCANS].reverse(); // all, oldest first
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - RANGE_DAYS);
+  return ALL_SCANS.filter(s => new Date(s.created_at) >= cutoff).reverse(); // oldest first
+}
+
+/* ─── Header meta pills ───────────────────────── */
+function renderHeader(filtered) {
+  const el = document.getElementById('progress-meta');
+  if (!ALL_SCANS.length) { el.innerHTML = ''; return; }
+
+  const total = ALL_SCANS.length;
+  const latest = ALL_SCANS[0];
+  const firstDate = new Date(ALL_SCANS[ALL_SCANS.length-1].created_at);
+  const daysSince = Math.round((Date.now() - firstDate) / 86400000);
+
+  el.innerHTML = `
+    <div class="meta-pill green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke-linecap="round"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      ${total} scan${total>1?'s':''} recorded
+    </div>
+    <div class="meta-pill ${latest.overall_score >= 70 ? 'green' : latest.overall_score >= 50 ? 'amber' : 'red'}">
+      Latest: ${latest.overall_score}/100 (Grade ${latest.overall_grade})
+    </div>
+    <div class="meta-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Tracking since ${daysSince} day${daysSince!==1?'s':''}
+    </div>`;
+}
+
+/* ─── Improvement banner ──────────────────────── */
+function renderImprovementBanner(filtered) {
+  const el = document.getElementById('improvement-banner');
+  if (filtered.length < 2) { el.style.display = 'none'; return; }
+
+  const first  = filtered[0];
+  const latest = filtered[filtered.length - 1];
+  const diff   = latest.overall_score - first.overall_score;
+  const pct    = Math.abs(diff).toFixed(1);
+  const pos    = diff >= 0;
+  const neutral = Math.abs(diff) < 1;
+
+  const cls = neutral ? 'neutral' : pos ? 'positive' : 'negative';
+  const icon = neutral ? '→' : pos ? '↑' : '↓';
+  const msg  = neutral
+    ? 'Your skin score has remained stable during this period.'
+    : pos
+    ? `Your skin has improved by ${pct} points over this period. Keep up your routine!`
+    : `Your score has dipped by ${pct} points. Check your routine and consistency.`;
+
+  el.style.display = 'flex';
+  el.className = `improvement-banner ${cls}`;
+  el.innerHTML = `
+    <div class="ib-orb ${cls}"></div>
+    <div class="ib-text">
+      <div class="ib-eyebrow">Period Transformation</div>
+      <div class="ib-title">${neutral ? 'Stable Skin Health' : pos ? 'Skin Improving! 🎉' : 'Needs Attention 👀'}</div>
+      <div class="ib-sub">${msg}</div>
+    </div>
+    <div class="ib-stat">
+      <div class="ib-pct ${pos?'pos':neutral?'':'neg'}">${pos&&!neutral?'+':''}${neutral?'±0':diff.toFixed(1)}</div>
+      <div class="ib-pct-label">points ${pos?'gained':'lost'}</div>
+    </div>`;
+}
+
+/* ─── Stat cards ──────────────────────────────── */
+function renderStatCards(filtered) {
+  const el = document.getElementById('stats-row');
+  if (!ALL_SCANS.length) {
+    el.innerHTML = `
+      <div class="stat-card"><div class="stat-lbl">Latest Score</div><div class="stat-val primary">—</div><div class="stat-sub">No scans yet</div><div class="stat-icon-bg">🔬</div></div>
+      <div class="stat-card"><div class="stat-lbl">Best Score</div><div class="stat-val primary">—</div><div class="stat-sub">No scans yet</div><div class="stat-icon-bg">🏆</div></div>
+      <div class="stat-card"><div class="stat-lbl">Improvement</div><div class="stat-val primary">—</div><div class="stat-sub">No data</div><div class="stat-icon-bg">📈</div></div>
+      <div class="stat-card"><div class="stat-lbl">Total Scans</div><div class="stat-val primary">0</div><div class="stat-sub">Start scanning</div><div class="stat-icon-bg">📷</div></div>`;
+    return;
+  }
+
+  const latest = ALL_SCANS[0];
+  const prev   = ALL_SCANS[1];
+  const best   = Math.max(...ALL_SCANS.map(s => s.overall_score));
+  const worst  = Math.min(...ALL_SCANS.map(s => s.overall_score));
+  const diff   = prev ? (latest.overall_score - prev.overall_score) : 0;
+  const totalScans = ALL_SCANS.length;
+  const avgScore = (ALL_SCANS.reduce((a,s)=>a+s.overall_score,0)/totalScans).toFixed(1);
+
+  // Grade color for latest
+  const gc = GRADE_COLORS[latest.overall_grade] || 'var(--primary)';
+
+  el.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-card-glow" style="background:${gc};"></div>
+      <div class="stat-lbl">Latest Score</div>
+      <div class="stat-val" style="color:${gc};">${latest.overall_score}</div>
+      <div class="stat-sub">
+        ${diff!==0?`<span class="${diff>0?'arrow-up':'arrow-dn'}">${diff>0?'▲':'▼'} ${Math.abs(diff).toFixed(1)}</span> vs prev scan`:
+        prev?'Same as prev scan':'First scan!'}
+      </div>
+      <div class="stat-icon-bg">🔬</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-glow" style="background:var(--green);"></div>
+      <div class="stat-lbl">Best Score</div>
+      <div class="stat-val primary">${best}</div>
+      <div class="stat-sub">Personal best — Grade ${ALL_SCANS.find(s=>s.overall_score===best)?.overall_grade||'?'}</div>
+      <div class="stat-icon-bg">🏆</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-glow" style="background:var(--amber);"></div>
+      <div class="stat-lbl">Overall Change</div>
+      <div class="stat-val ${filtered.length>1?(filtered[filtered.length-1].overall_score-filtered[0].overall_score>=0?'primary':'red'):'primary'}">
+        ${filtered.length>1
+          ? (filtered[filtered.length-1].overall_score - filtered[0].overall_score >= 0 ? '+' : '')
+            + (filtered[filtered.length-1].overall_score - filtered[0].overall_score).toFixed(1)
+          : '—'}
+      </div>
+      <div class="stat-sub">in selected period</div>
+      <div class="stat-icon-bg">📈</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-glow" style="background:var(--muted-fg);"></div>
+      <div class="stat-lbl">Total Scans</div>
+      <div class="stat-val primary">${totalScans}</div>
+      <div class="stat-sub">Avg score: ${avgScore}</div>
+      <div class="stat-icon-bg">📷</div>
+    </div>`;
+}
+
+/* ─── Main trend chart ────────────────────────── */
+function renderMainChart(filtered) {
+  const skeleton = document.getElementById('main-chart-skeleton');
+  const wrap     = document.getElementById('main-chart-wrap');
+  const empty    = document.getElementById('main-chart-empty');
+
+  skeleton.style.display = 'none';
+
+  if (!filtered.length) {
+    wrap.style.display = 'none'; empty.style.display = 'block'; return;
+  }
+
+  wrap.style.display  = 'block';
+  empty.style.display = 'none';
+
+  const labels = filtered.map(s => fmtDate(s.created_at));
+  const scores = filtered.map(s => s.overall_score);
+  const grades = filtered.map(s => s.overall_grade);
+
+  // Destroy & recreate
+  if (CHARTS.main) { CHARTS.main.destroy(); }
+
+  CHARTS.main = new Chart(document.getElementById('mainChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Skin Health Score',
+        data: scores,
+        borderColor: 'hsl(146,25%,45%)',
+        backgroundColor: (ctx) => {
+          const chart = ctx.chart;
+          const {ctx: c, chartArea} = chart;
+          if (!chartArea) return 'transparent';
+          const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          grad.addColorStop(0, 'rgba(146,180,160,.28)');
+          grad.addColorStop(1, 'rgba(146,180,160,.01)');
+          return grad;
+        },
+        fill: true,
+        tension: 0.45,
+        borderWidth: 3,
+        pointRadius: filtered.length <= 20 ? 5 : 3,
+        pointHoverRadius: 8,
+        pointBackgroundColor: scores.map(s => scoreColor(s)),
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff',
+          borderColor: 'var(--border)',
+          borderWidth: 1,
+          titleColor: '#1a2820',
+          bodyColor: '#6b7c74',
+          padding: 12,
+          callbacks: {
+            title: items => items[0].label,
+            label: item => `  Score: ${item.raw}/100 — Grade ${grades[item.dataIndex]}`,
+            afterLabel: item => {
+              const idx = item.dataIndex;
+              if (idx === 0) return '';
+              const delta = scores[idx] - scores[idx-1];
+              return `  Change: ${delta>0?'+':''}${delta.toFixed(1)} from prev`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          grid: { color: 'hsl(150,10%,94%)', drawBorder: false },
+          ticks: {
+            font: { size: 11, family: 'DM Sans' },
+            color: 'hsl(150,5%,55%)',
+            stepSize: 20,
+            callback: v => v + '%'
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { size: 10, family: 'DM Sans' },
+            color: 'hsl(150,5%,55%)',
+            maxRotation: 0,
+            maxTicksLimit: 8,
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ─── Concern pills ───────────────────────────── */
+function renderConcernPills(filtered) {
+  const el = document.getElementById('concern-pills');
+  // Collect all concern keys that appear in history
+  const keysInData = new Set();
+  filtered.forEach(s => Object.keys(s.concerns || {}).forEach(k => keysInData.add(k)));
+
+  if (!keysInData.size) { el.innerHTML = ''; return; }
+
+  el.innerHTML = Array.from(keysInData).map(k => {
+    const m = CONCERN_META[k] || { label: k, color: '#888', emoji: '•' };
+    const active = ACTIVE_CONCERNS.has(k);
+    return `<button class="concern-pill ${active?'active':''}" onclick="toggleConcern('${k}',this)"
+      style="${active?`border-color:${m.color};color:${m.color};background:${m.color}18;`:''}"
+      data-color="${m.color}">
+      <span class="dot" style="background:${m.color};opacity:.85;"></span>
+      ${m.emoji} ${m.label}
+    </button>`;
+  }).join('');
+}
+
+function toggleConcern(key, btn) {
+  if (ACTIVE_CONCERNS.has(key)) {
+    if (ACTIVE_CONCERNS.size === 1) return; // keep at least 1
+    ACTIVE_CONCERNS.delete(key);
+    btn.classList.remove('active');
+    btn.style.borderColor=''; btn.style.color=''; btn.style.background='';
+  } else {
+    ACTIVE_CONCERNS.add(key);
+    btn.classList.add('active');
+    const color = btn.dataset.color;
+    btn.style.borderColor=color; btn.style.color=color; btn.style.background=color+'18';
+  }
+  renderConcernChart(getFilteredScans());
+}
+
+/* ─── Concern chart ───────────────────────────── */
+function renderConcernChart(filtered) {
+  const canvas = document.getElementById('concernChart');
+  const empty  = document.getElementById('concern-empty');
+
+  const keysToShow = Array.from(ACTIVE_CONCERNS);
+  const hasData = filtered.some(s => keysToShow.some(k => s.concerns?.[k]));
+
+  if (!hasData) {
+    canvas.style.display = 'none'; empty.style.display = 'block'; return;
+  }
+  canvas.style.display = 'block'; empty.style.display = 'none';
+
+  const labels = filtered.map(s => fmtDate(s.created_at));
+
+  const datasets = keysToShow.map(k => {
+    const m = CONCERN_META[k] || { label: k, color: '#888' };
+    return {
+      label: m.label,
+      data: filtered.map(s => {
+        const c = s.concerns?.[k];
+        return c ? c.severity : null;
+      }),
+      borderColor: m.color,
+      backgroundColor: m.color + '18',
+      fill: false,
+      tension: 0.4,
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointHoverRadius: 7,
+      pointBackgroundColor: m.color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      spanGaps: true,
+    };
+  });
+
+  if (CHARTS.concern) CHARTS.concern.destroy();
+  CHARTS.concern = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11, family: 'DM Sans' }, padding: 14, usePointStyle: true, pointStyleWidth: 10 }
+        },
+        tooltip: {
+          backgroundColor: '#fff', borderColor: 'var(--border)', borderWidth: 1,
+          titleColor: '#1a2820', bodyColor: '#6b7c74', padding: 12,
+          callbacks: { label: i => `  ${i.dataset.label}: ${i.raw !== null ? i.raw + '% severity' : 'no data'}` }
+        }
+      },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          grid: { color: 'hsl(150,10%,94%)' },
+          ticks: { font: { size: 11 }, color: 'hsl(150,5%,55%)', callback: v => v + '%' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 }, color: 'hsl(150,5%,55%)', maxRotation: 0, maxTicksLimit: 8 }
+        }
+      }
+    }
+  });
+}
+
+/* ─── Grade donut chart ───────────────────────── */
+function renderGradeChart(filtered) {
+  if (!filtered.length) return;
+
+  // Count grades
+  const gradeCounts = { A:0, B:0, C:0, D:0, F:0 };
+  filtered.forEach(s => { if (s.overall_grade in gradeCounts) gradeCounts[s.overall_grade]++; });
+
+  // Most common grade
+  const mostCommon = Object.entries(gradeCounts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('grade-center-val').textContent = mostCommon?.[0] || '—';
+
+  const labels = Object.keys(gradeCounts).filter(g => gradeCounts[g] > 0);
+  const data   = labels.map(g => gradeCounts[g]);
+  const colors = labels.map(g => GRADE_COLORS[g]);
+
+  if (CHARTS.grade) CHARTS.grade.destroy();
+  CHARTS.grade = new Chart(document.getElementById('gradeChart'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#fff', hoverBorderWidth: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: i => `  Grade ${i.label}: ${i.raw} scan${i.raw!==1?'s':''}` } }
+      }
+    }
+  });
+
+  // Legend
+  document.getElementById('grade-legend').innerHTML = labels.map((g,i) => `
+    <div style="display:flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;color:${colors[i]};">
+      <div style="width:10px;height:10px;border-radius:3px;background:${colors[i]};"></div>
+      Grade ${g} (${data[i]})
+    </div>`).join('');
+}
+
+/* ─── Scan timeline ───────────────────────────── */
+function renderTimeline() {
+  const wrap  = document.getElementById('timeline-wrap');
+  const empty = document.getElementById('timeline-empty');
+  const badge = document.getElementById('scan-count-badge');
+
+  if (!ALL_SCANS.length) {
+    wrap.style.display = 'none'; empty.style.display = 'block'; badge.textContent = '';
+    return;
+  }
+
+  wrap.style.display  = 'block';
+  empty.style.display = 'none';
+  badge.textContent   = `${ALL_SCANS.length} scan${ALL_SCANS.length!==1?'s':''}`;
+
+  const gc = GRADE_COLORS;
+  wrap.innerHTML = ALL_SCANS.map((s, idx) => {
+    const isLatest = idx === 0;
+    const prev     = ALL_SCANS[idx + 1];
+    const delta    = prev ? (s.overall_score - prev.overall_score) : null;
+    const gradeCol = gc[s.overall_grade] || 'var(--primary)';
+
+    // Top concern chips
+    const concerns = Object.values(s.concerns || {})
+      .filter(c => c.severity > 10)
+      .sort((a,b) => b.severity - a.severity)
+      .slice(0, 4);
+
+    return `
+      <div class="tl-item ${isLatest?'latest':''}">
+        <div class="tl-left">
+          <div class="tl-dot"></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-row">
+            <div class="tl-date">${fmtDateFull(s.created_at)}</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${isLatest ? '<span class="tl-badge latest-badge">Latest</span>' : '<span class="tl-badge old-badge">Scan</span>'}
+              ${s.face_detected ? '<span style="font-size:.7rem;color:var(--green);">✓ Face</span>' : '<span style="font-size:.7rem;color:var(--muted-fg);">⚠ No face</span>'}
+            </div>
+          </div>
+          <div class="tl-score-row">
+            <div class="tl-score-big" style="color:${gradeCol};">${s.overall_score}</div>
+            <div style="font-size:.78rem;color:var(--muted-fg);">/ 100</div>
+            <div class="tl-score-grade" style="background:${gradeCol}18;color:${gradeCol};">Grade ${s.overall_grade}</div>
+            ${delta !== null
+              ? `<div class="tl-delta ${delta>=0?'pos':'neg'}">${delta>0?'▲ +':delta<0?'▼ ':'→ '}${Math.abs(delta).toFixed(1)}</div>`
+              : '<div style="font-size:.72rem;color:var(--muted-fg);">First scan</div>'}
+          </div>
+          ${concerns.length ? `
+            <div class="tl-concerns">
+              ${concerns.map(c => {
+                const m = Object.values(CONCERN_META).find(m=>m.label===c.name)||{color:'#888'};
+                return `<span class="tl-chip" style="background:${m.color}12;color:${m.color};">${c.name} ${c.severity.toFixed(0)}%</span>`;
+              }).join('')}
+            </div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   RANGE FILTER
+═══════════════════════════════════════════════ */
+function setRange(days, btn) {
+  RANGE_DAYS = days;
+  document.querySelectorAll('.range-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = getFilteredScans();
+  renderHeader(filtered);
+  renderImprovementBanner(filtered);
+  renderStatCards(filtered);
+  renderMainChart(filtered);
+  renderConcernPills(filtered);
+  renderConcernChart(filtered);
+  renderGradeChart(filtered);
+  // Timeline always shows all
+}
+
+/* ═══════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════ */
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+function fmtDateFull(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function scoreColor(score) {
+  if (score >= 75) return 'hsl(146,35%,50%)';
+  if (score >= 55) return 'hsl(40,80%,52%)';
+  if (score >= 35) return 'hsl(28,70%,50%)';
+  return 'hsl(0,60%,50%)';
+}
+
+function goToScan() { window.location.href = '/?scan=1'; }
+
+function redirectToLogin() { window.location.href = '/'; }
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show';
+  clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 4000);
+}
+</script>
+</body>
+</html>

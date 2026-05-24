@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Dashboard — Youth Alchemy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7F5;--fg:#1a1a1a;--muted:#6b6b6b;
+  --card:#fff;--border:rgba(0,0,0,.08);
+  --primary:#92B4A0;--primary-light:rgba(146,180,160,.12);
+  --pink:#F8BBD0;--pink-hover:#F48FB1;
+  --danger:#ef5350;--warn:#ff9800;--ok:#66bb6a;
+  --font-sans:'DM Sans',sans-serif;--font-serif:'Playfair Display',serif;
+  --radius:14px;--shadow:0 2px 14px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-serif)}
+button{font-family:var(--font-sans)}
+
+/* ── LOGIN ─────────────────────────────────────── */
+#loginWrap{position:fixed;inset:0;background:linear-gradient(135deg,#F5F7F5,#e8f0ec);display:flex;align-items:center;justify-content:center;z-index:200}
+.login-box{background:var(--card);border-radius:20px;padding:44px 40px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center}
+.login-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 20px}
+.login-box h2{font-size:1.5rem;margin-bottom:6px}
+.login-box p{color:var(--muted);font-size:.85rem;margin-bottom:28px}
+.form-group{margin-bottom:16px;text-align:left}
+.form-group label{display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.form-group input{width:100%;height:44px;border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-family:var(--font-sans);font-size:.9rem;outline:none;transition:border-color .2s;background:#fafafa}
+.form-group input:focus{border-color:var(--primary);background:#fff}
+.btn-primary{width:100%;height:46px;background:linear-gradient(135deg,var(--primary),#7aa490);color:#fff;border:none;border-radius:999px;font-family:var(--font-sans);font-size:.95rem;font-weight:700;cursor:pointer;margin-top:4px;transition:all .2s}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.err-msg{font-size:.8rem;color:var(--danger);margin-top:10px;min-height:18px}
+
+/* ── LAYOUT ────────────────────────────────────── */
+#app{display:none}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+@media(max-width:720px){.layout{grid-template-columns:1fr}}
+
+/* SIDEBAR */
+.sidebar{background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sb-brand{padding:24px 20px 16px;border-bottom:1px solid var(--border)}
+.sb-brand span{font-family:var(--font-serif);font-size:1.05rem;display:block}
+.sb-brand small{font-size:.72rem;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.sb-doctor{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;font-weight:700;flex-shrink:0}
+.sb-doctor-info span{font-size:.85rem;font-weight:600;display:block}
+.sb-doctor-info small{font-size:.72rem;color:var(--muted)}
+.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.nav-btn{padding:10px 14px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:none;text-align:left;display:flex;align-items:center;gap:8px;transition:all .15s;width:100%}
+.nav-btn:hover{background:var(--primary-light);color:var(--fg)}
+.nav-btn.active{background:var(--primary-light);color:var(--primary)}
+.nav-btn .badge-count{margin-left:auto;background:var(--pink);color:#111;border-radius:999px;font-size:.68rem;font-weight:700;padding:2px 7px}
+.sb-footer{padding:16px;border-top:1px solid var(--border)}
+.logout-btn{width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600;background:none;cursor:pointer;color:var(--muted);transition:all .2s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+/* MAIN */
+.main{padding:28px;overflow-y:auto}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-head h1{font-size:1.5rem;font-weight:500}
+
+/* TABS */
+.tab-section{display:none}.tab-section.active{display:block}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px;box-shadow:var(--shadow)}
+.stat-card .num{font-family:var(--font-serif);font-size:1.9rem;font-weight:700;color:var(--primary)}
+.stat-card .lbl{font-size:.75rem;color:var(--muted);margin-top:4px;font-weight:600}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
+.card h3{font-size:1rem;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card h3 span{font-family:var(--font-sans);font-size:.78rem;color:var(--muted);font-weight:400}
+
+/* SCHEDULE GRID */
+.schedule-grid{display:flex;flex-direction:column;gap:10px}
+.day-row{display:grid;grid-template-columns:100px 1fr auto;align-items:center;gap:12px;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;background:#fafafa;transition:border-color .2s}
+.day-row.active-day{border-color:rgba(146,180,160,.4);background:rgba(146,180,160,.04)}
+.day-label{font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:6px}
+.day-inputs{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.day-inputs input[type=time]{height:36px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-family:var(--font-sans);font-size:.85rem;outline:none;transition:border-color .2s}
+.day-inputs input[type=time]:focus{border-color:var(--primary)}
+.day-inputs select{height:36px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-family:var(--font-sans);font-size:.82rem;font-weight:600;outline:none;background:#fff}
+.day-inputs .sep{color:var(--muted);font-size:.8rem}
+.toggle{position:relative;width:38px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#ddd;border-radius:999px;cursor:pointer;transition:.2s}
+.slider:before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.2s}
+input:checked+.slider{background:var(--primary)}
+input:checked+.slider:before{transform:translateX(18px)}
+
+/* APPOINTMENT TABLE */
+.appt-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--card)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:11px 14px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:#fafafa;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(146,180,160,.04)}
+tbody tr:last-child{border-bottom:none}
+td{padding:12px 14px;font-size:.86rem;vertical-align:middle}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.04em}
+.pill.pending{background:rgba(255,183,77,.15);color:#a06020}
+.pill.confirmed{background:rgba(102,187,106,.15);color:#2d7a30}
+.pill.cancelled{background:#f0f0f0;color:#999}
+.pill.completed{background:rgba(100,130,255,.1);color:#4050c8}
+.act-btn{padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;margin:1px}
+.act-btn.confirm{background:rgba(102,187,106,.12);color:#2d7a30;border-color:rgba(102,187,106,.3)}
+.act-btn.cancel{background:rgba(239,83,80,.08);color:#c62828;border-color:rgba(239,83,80,.2)}
+.act-btn.view{background:var(--primary-light);color:#3d6b58;border-color:rgba(146,180,160,.3)}
+.act-btn.notes{background:rgba(255,183,77,.1);color:#a06020;border-color:rgba(255,183,77,.3)}
+.act-btn.complete{background:rgba(100,130,255,.1);color:#4050c8;border-color:rgba(100,130,255,.25)}
+
+/* OVERRIDE */
+.override-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.override-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:#fafafa;border:1px solid var(--border);font-size:.85rem}
+.override-item .ov-date{font-weight:700;min-width:90px}
+.override-item .ov-type{flex:1}
+.override-item .ov-reason{color:var(--muted);font-size:.78rem;flex:2}
+.del-btn{padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid rgba(239,83,80,.25);background:rgba(239,83,80,.08);color:#c62828;transition:all .15s}
+.del-btn:hover{background:rgba(239,83,80,.15)}
+
+/* FORM INLINE */
+.inline-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.inline-form .fg{display:flex;flex-direction:column;gap:4px}
+.inline-form label{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.inline-form input,.inline-form select,.inline-form textarea{border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-family:var(--font-sans);font-size:.85rem;outline:none;transition:border-color .2s;height:38px;background:#fafafa}
+.inline-form input:focus,.inline-form select:focus,.inline-form textarea:focus{border-color:var(--primary);background:#fff}
+.inline-form textarea{height:70px;resize:vertical}
+
+/* BUTTONS */
+.btn-green{height:38px;padding:0 18px;background:var(--primary);color:#fff;border:none;border-radius:999px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-green:hover{background:#7aa490}
+.btn-pink{height:38px;padding:0 18px;background:var(--pink);color:#111;border:none;border-radius:999px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-pink:hover{background:var(--pink-hover)}
+.btn-outline{height:38px;padding:0 16px;background:none;border:1.5px solid var(--border);border-radius:999px;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--fg);transition:all .2s}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+
+/* PATIENT HISTORY MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--card);border-radius:20px;width:100%;max-width:740px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.25)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-size:1.2rem}
+.modal-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px}
+.history-section{margin-bottom:24px}
+.history-section h3{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+.scan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.scan-thumb{border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:#f5f5f5;aspect-ratio:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;font-size:.72rem;color:var(--muted)}
+.scan-thumb:hover{border-color:var(--primary);transform:scale(1.03)}
+.scan-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.journal-item{padding:10px;border-radius:8px;background:#fafafa;border:1px solid var(--border);margin-bottom:8px;font-size:.83rem}
+.journal-item .j-date{font-weight:700;font-size:.75rem;color:var(--muted);margin-bottom:4px}
+.product-tag{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--primary-light);color:#3d6b58;font-size:.75rem;font-weight:600;margin:2px}
+
+/* NOTES PANEL */
+.notes-panel{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-top:16px}
+.notes-panel textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:var(--font-sans);font-size:.85rem;resize:vertical;min-height:80px;outline:none}
+.notes-panel textarea:focus{border-color:var(--primary)}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .icon{font-size:2.5rem;margin-bottom:12px}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:10px;font-size:.85rem;transform:translateY(60px);opacity:0;transition:.3s;z-index:999;max-width:280px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:#388e3c}
+#toast.err{background:#c62828}
+
+/* LOADING */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(146,180,160,.3);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ──────────────────────────────────────── -->
+<div id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">🩺</div>
+    <h2>Doctor Portal</h2>
+    <p>Youth Alchemy — Skin Health Platform</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="li-email" placeholder="doctor@youthalchemy.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="li-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+    <div class="err-msg" id="li-err"></div>
+  </div>
+</div>
+
+<!-- ── APP ───────────────────────────────────────── -->
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <span>Youth Alchemy</span>
+        <small>Doctor Portal</small>
+      </div>
+      <div class="sb-doctor">
+        <div class="sb-avatar" id="sb-initial">D</div>
+        <div class="sb-doctor-info">
+          <span id="sb-name">Doctor</span>
+          <small id="sb-specialty">Dermatology</small>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <button class="nav-btn active" onclick="showTab('overview')" id="tab-overview">📊 Overview</button>
+        <button class="nav-btn" onclick="showTab('appointments')" id="tab-appointments">
+          📅 Appointments <span class="badge-count" id="pending-count" style="display:none">0</span>
+        </button>
+        <button class="nav-btn" onclick="showTab('schedule')" id="tab-schedule">🗓 My Schedule</button>
+        <button class="nav-btn" onclick="showTab('overrides')" id="tab-overrides">⚠️ Emergency</button>
+      </nav>
+      <div class="sb-footer">
+        <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- OVERVIEW TAB -->
+      <div class="tab-section active" id="tab-section-overview">
+        <div class="page-head">
+          <h1>Good day 👋</h1>
+          <button class="btn-outline" onclick="loadAll()">↻ Refresh</button>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="num" id="ov-total">—</div><div class="lbl">Total Appointments</div></div>
+          <div class="stat-card"><div class="num" id="ov-pending">—</div><div class="lbl">Awaiting Confirm</div></div>
+          <div class="stat-card"><div class="num" id="ov-today">—</div><div class="lbl">Today</div></div>
+          <div class="stat-card"><div class="num" id="ov-week">—</div><div class="lbl">This Week</div></div>
+        </div>
+
+        <!-- Today's appointments -->
+        <div class="card">
+          <h3>📅 Today's Appointments</h3>
+          <div id="today-list"><div class="empty"><div class="icon">📋</div><p>Loading…</p></div></div>
+        </div>
+
+        <!-- Quick schedule summary -->
+        <div class="card">
+          <h3>🗓 Current Weekly Schedule <span>(read-only — edit in My Schedule tab)</span></h3>
+          <div id="schedule-summary"></div>
+        </div>
+      </div>
+
+      <!-- APPOINTMENTS TAB -->
+      <div class="tab-section" id="tab-section-appointments">
+        <div class="page-head">
+          <h1>Appointments</h1>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="date" id="appt-filter-date" class="btn-outline" style="height:38px;padding:0 10px;font-size:.82rem" onchange="renderAppointments()">
+            <select id="appt-filter-status" onchange="renderAppointments()" style="height:38px;border:1.5px solid var(--border);border-radius:999px;padding:0 14px;font-size:.82rem;font-weight:600;outline:none;background:#fff">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="appt-table-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Date</th><th>Time</th><th>Patient</th>
+              <th>Contact</th><th>Concern</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="appt-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SCHEDULE TAB -->
+      <div class="tab-section" id="tab-section-schedule">
+        <div class="page-head">
+          <h1>Weekly Schedule</h1>
+          <button class="btn-green" onclick="saveSchedule()">💾 Save Schedule</button>
+        </div>
+        <div class="card">
+          <h3>Configure your working hours for each day</h3>
+          <div class="schedule-grid" id="schedule-grid"></div>
+        </div>
+        <div class="card" style="background:rgba(146,180,160,.04)">
+          <p style="font-size:.83rem;color:var(--muted)">
+            ⓘ Changes take effect immediately. Existing bookings are not affected.
+            Use the <strong>Emergency tab</strong> to block specific dates with patient notification.
+          </p>
+        </div>
+      </div>
+
+      <!-- OVERRIDES TAB -->
+      <div class="tab-section" id="tab-section-overrides">
+        <div class="page-head"><h1>Emergency / Overrides</h1></div>
+
+        <!-- Existing overrides -->
+        <div class="card">
+          <h3>📋 Upcoming Overrides</h3>
+          <div id="override-list"><div class="empty"><p>No overrides set.</p></div></div>
+        </div>
+
+        <!-- Add new override -->
+        <div class="card">
+          <h3>➕ Set New Override</h3>
+          <div class="inline-form" id="override-form">
+            <div class="fg">
+              <label>Date *</label>
+              <input type="date" id="ov-date">
+            </div>
+            <div class="fg">
+              <label>Type</label>
+              <select id="ov-type" onchange="toggleOvTimes()">
+                <option value="dayoff">Entire Day Off</option>
+                <option value="custom">Custom Hours</option>
+              </select>
+            </div>
+            <div class="fg" id="ov-times" style="display:none">
+              <label>From — To</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input type="time" id="ov-start" value="10:00" style="height:38px">
+                <span style="color:var(--muted)">—</span>
+                <input type="time" id="ov-end" value="14:00" style="height:38px">
+              </div>
+            </div>
+            <div class="fg" style="flex:1;min-width:180px">
+              <label>Reason (shown to patients)</label>
+              <input type="text" id="ov-reason" placeholder="e.g. Medical emergency">
+            </div>
+            <div class="fg" style="align-self:flex-end">
+              <button class="btn-pink" onclick="addOverride()">Set Override</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- PATIENT HISTORY MODAL -->
+<div class="modal-overlay" id="historyModal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-patient-name">Patient History</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">Loading…</div>
+  </div>
+</div>
+
+<!-- NOTES MODAL -->
+<div class="modal-overlay" id="notesModal" style="display:none" onclick="if(event.target===this)closeNotesModal()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2>Consultation Notes</h2>
+      <button class="modal-close" onclick="closeNotesModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px" id="notes-appt-label"></p>
+      <textarea id="notes-input" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:var(--font-sans);font-size:.9rem;resize:vertical;min-height:120px;outline:none" placeholder="Write consultation notes…"></textarea>
+      <div style="margin-top:12px;text-align:right">
+        <button class="btn-green" onclick="saveNotes()">Save Notes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = '';
+let TOKEN = '';
+let DOCTOR = {};
+let ALL_APPTS = [];
+let _notesApptId = null;
+
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DOW_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// ── AUTH ──────────────────────────────────────────────────────
+async function doLogin(){
+  const email = document.getElementById('li-email').value.trim().toLowerCase();
+  const pwd   = document.getElementById('li-pwd').value;
+  document.getElementById('li-err').textContent = '';
+  if(!email || !pwd){ document.getElementById('li-err').textContent = 'Both fields required.'; return; }
+  try{
+    const r = await fetch(`${API}/api/doctor/login`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pwd})
+    });
+    const d = await r.json();
+    if(!d.success){ document.getElementById('li-err').textContent = d.error; return; }
+    TOKEN  = d.token;
+    DOCTOR = d.doctor;
+    localStorage.setItem('ya_doctor_token', TOKEN);
+    localStorage.setItem('ya_doctor_info', JSON.stringify(DOCTOR));
+    bootApp();
+  }catch(e){ document.getElementById('li-err').textContent = 'Server unreachable.'; }
+}
+
+function doLogout(){
+  TOKEN = ''; DOCTOR = {};
+  localStorage.removeItem('ya_doctor_token');
+  localStorage.removeItem('ya_doctor_info');
+  location.reload();
+}
+
+function bootApp(){
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sb-name').textContent = DOCTOR.name || 'Doctor';
+  document.getElementById('sb-specialty').textContent = DOCTOR.specialty || 'Dermatology';
+  document.getElementById('sb-initial').textContent = (DOCTOR.name||'D')[0].toUpperCase();
+  buildScheduleGrid();
+  loadAll();
+}
+
+// ── AUTO-LOGIN ─────────────────────────────────────────────────
+(function(){
+  const tok = localStorage.getItem('ya_doctor_token');
+  const doc = localStorage.getItem('ya_doctor_info');
+  if(tok && doc){
+    TOKEN  = tok;
+    DOCTOR = JSON.parse(doc);
+    bootApp();
+  }
+})();
+
+// ── DATA LOAD ─────────────────────────────────────────────────
+async function loadAll(){
+  await Promise.all([loadAppointments(), loadSchedule(), loadOverrides()]);
+}
+
+async function loadAppointments(){
+  try{
+    const r = await apiFetch('/api/doctor/appointments');
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    ALL_APPTS = d.appointments || [];
+    computeStats();
+    renderAppointments();
+    renderTodayList();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function loadSchedule(){
+  try{
+    const r = await apiFetch('/api/doctor/availability');
+    const d = await r.json();
+    if(!d.success) return;
+    // Populate grid inputs
+    const avail = d.availability || [];
+    DAYS.forEach((_,i)=>{
+      const row = avail.find(a=>a.day_of_week===i);
+      const tog = document.getElementById(`tog-${i}`);
+      if(!tog) return;
+      if(row){
+        tog.checked = true;
+        document.getElementById(`st-${i}`).value = row.start_time;
+        document.getElementById(`et-${i}`).value = row.end_time;
+        document.getElementById(`dur-${i}`).value = row.slot_duration || 30;
+        toggleDayRow(i, true);
+      } else {
+        tog.checked = false;
+        toggleDayRow(i, false);
+      }
+    });
+    renderScheduleSummary(avail);
+  }catch(e){ console.error('loadSchedule', e); }
+}
+
+async function loadOverrides(){
+  try{
+    const r = await apiFetch('/api/doctor/override');
+    const d = await r.json();
+    if(!d.success) return;
+    renderOverrides(d.overrides || []);
+  }catch(e){ console.error('loadOverrides', e); }
+}
+
+// ── STATS ─────────────────────────────────────────────────────
+function computeStats(){
+  const today = new Date().toISOString().slice(0,10);
+  const weekEnd = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+  const total   = ALL_APPTS.length;
+  const pending = ALL_APPTS.filter(a=>a.status==='pending').length;
+  const todayC  = ALL_APPTS.filter(a=>a.date===today).length;
+  const weekC   = ALL_APPTS.filter(a=>a.date>=today && a.date<=weekEnd).length;
+  document.getElementById('ov-total').textContent   = total;
+  document.getElementById('ov-pending').textContent = pending;
+  document.getElementById('ov-today').textContent   = todayC;
+  document.getElementById('ov-week').textContent    = weekC;
+  const pb = document.getElementById('pending-count');
+  if(pending > 0){ pb.textContent = pending; pb.style.display = ''; }
+  else pb.style.display = 'none';
+}
+
+// ── TODAY LIST ────────────────────────────────────────────────
+function renderTodayList(){
+  const today = new Date().toISOString().slice(0,10);
+  const list  = ALL_APPTS.filter(a=>a.date===today).sort((a,b)=>a.time.localeCompare(b.time));
+  const el    = document.getElementById('today-list');
+  if(!list.length){ el.innerHTML = '<div class="empty"><div class="icon">☀️</div><p>No appointments today.</p></div>'; return; }
+  el.innerHTML = list.map(a=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--font-serif);font-size:1.1rem;color:var(--primary);min-width:52px">${a.time}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.9rem">${esc(a.name)}</div>
+        <div style="font-size:.78rem;color:var(--muted)">${esc(a.email)} ${a.concern ? '· '+esc(a.concern) : ''}</div>
+      </div>
+      <span class="pill ${a.status}">${a.status}</span>
+      ${a.status==='pending'?`<button class="act-btn confirm" onclick="updateStatus(${a.id},'confirmed')">Confirm</button>`:''}
+    </div>`).join('');
+}
+
+// ── APPOINTMENT TABLE ─────────────────────────────────────────
+function renderAppointments(){
+  const sf = document.getElementById('appt-filter-status').value;
+  const df = document.getElementById('appt-filter-date').value;
+  let list = ALL_APPTS;
+  if(sf) list = list.filter(a=>a.status===sf);
+  if(df) list = list.filter(a=>a.date===df);
+
+  const tbody = document.getElementById('appt-tbody');
+  if(!list.length){
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="icon">📅</div><p>No appointments match this filter.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(a=>`
+    <tr>
+      <td style="font-family:monospace;font-size:.75rem;color:var(--muted)">#${a.id}</td>
+      <td><strong>${fmtDate(a.date)}</strong></td>
+      <td>${a.time}</td>
+      <td>${esc(a.name)}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${esc(a.email)}<br>${esc(a.phone)}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${esc(a.concern||'—')}</td>
+      <td><span class="pill ${a.status}">${a.status}</span></td>
+      <td>
+        ${a.status==='pending'?`<button class="act-btn confirm" onclick="updateStatus(${a.id},'confirmed')">✓</button>`:''}
+        ${a.status!=='cancelled'?`<button class="act-btn cancel" onclick="updateStatus(${a.id},'cancelled')">✕</button>`:''}
+        ${a.status==='confirmed'?`<button class="act-btn complete" onclick="updateStatus(${a.id},'completed')">Done</button>`:''}
+        ${a.user_id?`<button class="act-btn view" onclick="viewPatient(${a.user_id}, '${esc(a.name)}')">History</button>`:''}
+        <button class="act-btn notes" onclick="openNotes(${a.id}, '${esc(a.name)} — ${a.date} ${a.time}')">Notes</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function updateStatus(id, status){
+  try{
+    const r = await apiFetch(`/api/doctor/appointments/${id}/status`, 'PATCH', {status});
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    const appt = ALL_APPTS.find(a=>a.id===id);
+    if(appt) appt.status = status;
+    computeStats(); renderAppointments(); renderTodayList();
+    showToast(`#${id} → ${status}`,'ok');
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+// ── SCHEDULE GRID ─────────────────────────────────────────────
+function buildScheduleGrid(){
+  const grid = document.getElementById('schedule-grid');
+  grid.innerHTML = DAYS.map((day,i)=>`
+    <div class="day-row" id="day-row-${i}">
+      <div class="day-label">
+        <label class="toggle">
+          <input type="checkbox" id="tog-${i}" onchange="toggleDayRow(${i},this.checked)">
+          <span class="slider"></span>
+        </label>
+        ${day}
+      </div>
+      <div class="day-inputs" id="day-inputs-${i}" style="opacity:.3;pointer-events:none">
+        <input type="time" id="st-${i}" value="09:00">
+        <span class="sep">to</span>
+        <input type="time" id="et-${i}" value="18:00">
+        <select id="dur-${i}">
+          <option value="15">15 min slots</option>
+          <option value="30" selected>30 min slots</option>
+          <option value="60">60 min slots</option>
+        </select>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted)" id="day-preview-${i}">Off</div>
+    </div>`).join('');
+}
+
+function toggleDayRow(i, enabled){
+  const inputs = document.getElementById(`day-inputs-${i}`);
+  const row    = document.getElementById(`day-row-${i}`);
+  const preview = document.getElementById(`day-preview-${i}`);
+  inputs.style.opacity = enabled ? '1' : '.3';
+  inputs.style.pointerEvents = enabled ? 'auto' : 'none';
+  row.classList.toggle('active-day', enabled);
+  if(!enabled) preview.textContent = 'Off';
+  else updatePreview(i);
+  // live preview on time change
+  ['st-','et-','dur-'].forEach(pfx=>{
+    const el = document.getElementById(pfx+i);
+    if(el) el.oninput = ()=>updatePreview(i);
+  });
+}
+
+function updatePreview(i){
+  const st = document.getElementById(`st-${i}`).value;
+  const et = document.getElementById(`et-${i}`).value;
+  const dur = parseInt(document.getElementById(`dur-${i}`).value||30);
+  if(!st||!et){ return; }
+  const sh=parseInt(st),eh=parseInt(et),sm=parseInt(st.split(':')[1]),em=parseInt(et.split(':')[1]);
+  const startMin = sh*60+sm, endMin=eh*60+em;
+  const count = Math.max(0, Math.floor((endMin-startMin)/dur));
+  document.getElementById(`day-preview-${i}`).textContent = `${count} slots`;
+}
+
+async function saveSchedule(){
+  const schedule = [];
+  DAYS.forEach((_,i)=>{
+    const enabled = document.getElementById(`tog-${i}`).checked;
+    if(enabled){
+      schedule.push({
+        day_of_week:  i,
+        start_time:   document.getElementById(`st-${i}`).value,
+        end_time:     document.getElementById(`et-${i}`).value,
+        slot_duration:parseInt(document.getElementById(`dur-${i}`).value),
+        available:    true
+      });
+    } else {
+      schedule.push({ day_of_week:i, start_time:'09:00', end_time:'17:00', slot_duration:30, available:false });
+    }
+  });
+  try{
+    const r = await apiFetch('/api/doctor/availability','POST',{schedule});
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    showToast('Schedule saved!','ok');
+    loadSchedule();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+function renderScheduleSummary(avail){
+  const el = document.getElementById('schedule-summary');
+  if(!avail.length){ el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No schedule configured yet.</p>'; return; }
+  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px">` +
+    DAYS.map((day,i)=>{
+      const row = avail.find(a=>a.day_of_week===i);
+      if(!row) return `<div style="padding:6px 12px;border-radius:8px;background:#f5f5f5;font-size:.78rem;color:var(--muted)">${DOW_SHORT[i]}: Off</div>`;
+      const dur = row.slot_duration||30;
+      const sh=parseInt(row.start_time),sm=parseInt(row.start_time.split(':')[1]);
+      const eh=parseInt(row.end_time),em=parseInt(row.end_time.split(':')[1]);
+      const count = Math.floor(((eh*60+em)-(sh*60+sm))/dur);
+      return `<div style="padding:6px 14px;border-radius:8px;background:var(--primary-light);border:1px solid rgba(146,180,160,.25);font-size:.78rem">
+        <strong>${DOW_SHORT[i]}</strong> ${row.start_time}–${row.end_time} · ${count} slots
+      </div>`;
+    }).join('') + `</div>`;
+}
+
+// ── OVERRIDES ─────────────────────────────────────────────────
+function toggleOvTimes(){
+  const t = document.getElementById('ov-type').value;
+  document.getElementById('ov-times').style.display = t==='custom' ? 'flex' : 'none';
+}
+
+async function addOverride(){
+  const date   = document.getElementById('ov-date').value;
+  const type   = document.getElementById('ov-type').value;
+  const reason = document.getElementById('ov-reason').value.trim();
+  if(!date){ showToast('Select a date','err'); return; }
+
+  const body = {
+    date, reason,
+    is_day_off: type === 'dayoff'
+  };
+  if(type === 'custom'){
+    body.start_time = document.getElementById('ov-start').value;
+    body.end_time   = document.getElementById('ov-end').value;
+  }
+
+  try{
+    const r = await apiFetch('/api/doctor/override','POST', body);
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    showToast('Override set. Affected patients notified.','ok');
+    document.getElementById('ov-date').value = '';
+    document.getElementById('ov-reason').value = '';
+    loadOverrides();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+async function deleteOverride(oid){
+  if(!confirm('Remove this override?')) return;
+  try{
+    const r = await apiFetch(`/api/doctor/override/${oid}`,'DELETE');
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    showToast('Override removed','ok');
+    loadOverrides();
+  }catch(e){ showToast(e.message,'err'); }
+}
+
+function renderOverrides(list){
+  const el = document.getElementById('override-list');
+  if(!list.length){ el.innerHTML = '<div class="empty"><p>No upcoming overrides.</p></div>'; return; }
+  el.innerHTML = `<div class="override-list">` +
+    list.map(o=>`
+      <div class="override-item">
+        <div class="ov-date">${fmtDate(o.override_date)}</div>
+        <div class="ov-type">${o.is_day_off ? '🔴 Day Off' : `🟡 Custom: ${o.start_time||''}–${o.end_time||''}`}</div>
+        <div class="ov-reason">${esc(o.reason||'—')}</div>
+        <button class="del-btn" onclick="deleteOverride(${o.id})">Remove</button>
+      </div>`).join('') + `</div>`;
+}
+
+// ── PATIENT HISTORY MODAL ─────────────────────────────────────
+async function viewPatient(userId, name){
+  document.getElementById('modal-patient-name').textContent = name + ' — Skin History';
+  document.getElementById('modal-body').innerHTML = '<div class="empty"><span class="spinner"></span>Loading history…</div>';
+  document.getElementById('historyModal').style.display = 'flex';
+
+  try{
+    const r = await apiFetch(`/api/doctor/patient/${userId}/history`);
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    const h = d.history;
+
+    // Scans
+    let scansHtml = `<div class="history-section"><h3>🔬 Skin Scans (${h.scans.length})</h3>`;
+    if(!h.scans.length){
+      scansHtml += '<p style="font-size:.83rem;color:var(--muted)">No scans recorded.</p>';
+    } else {
+      scansHtml += `<div class="scan-grid">` +
+        h.scans.map(s=>`
+          <div class="scan-thumb" onclick="viewScanImage(${userId},${s.id})" title="Score: ${s.overall_score||'—'} ${s.overall_grade||''}">
+            ${s.has_image ? `<img id="scan-img-${s.id}" src="data:image/jpeg;base64,placeholder" data-uid="${userId}" data-sid="${s.id}">` : '🖼️'}
+            <span>${s.created_at?.slice(0,10)||'—'}</span>
+          </div>`).join('') + `</div>`;
+    }
+    scansHtml += '</div>';
+
+    // Journal
+    let journalHtml = `<div class="history-section"><h3>📓 Journal & Logs (${h.journal.length})</h3>`;
+    if(!h.journal.length){
+      journalHtml += '<p style="font-size:.83rem;color:var(--muted)">No journal entries.</p>';
+    } else {
+      journalHtml += h.journal.slice(0,8).map(j=>`
+        <div class="journal-item">
+          <div class="j-date">${j.entry_date} · Mood: ${j.mood||'—'} · Skin: ${j.skin_feel||'—'}</div>
+          ${j.notes ? `<div>${esc(j.notes)}</div>` : ''}
+          ${j.products_used ? `<div style="margin-top:4px;font-size:.78rem;color:var(--muted)">Products: ${esc(j.products_used)}</div>` : ''}
+        </div>`).join('');
+    }
+    journalHtml += '</div>';
+
+    // Products
+    let productsHtml = `<div class="history-section"><h3>🧴 Products (${h.products.length})</h3>`;
+    if(!h.products.length){
+      productsHtml += '<p style="font-size:.83rem;color:var(--muted)">No products logged.</p>';
+    } else {
+      productsHtml += h.products.map(p=>`
+        <span class="product-tag">${esc(p.name)} ${p.rating?'('+p.rating+'/5)':''} ${p.active?'✓':''}</span>`).join('');
+    }
+    productsHtml += '</div>';
+
+    document.getElementById('modal-body').innerHTML = scansHtml + journalHtml + productsHtml;
+
+    // Lazy-load scan images
+    h.scans.filter(s=>s.has_image).forEach(s=>{
+      loadScanImage(userId, s.id);
+    });
+
+  }catch(e){
+    document.getElementById('modal-body').innerHTML = `<div class="empty"><p style="color:var(--danger)">${e.message}</p></div>`;
+  }
+}
+
+async function loadScanImage(userId, scanId){
+  try{
+    const r = await apiFetch(`/api/doctor/patient/${userId}/scan/${scanId}/image`);
+    const d = await r.json();
+    if(d.success && d.image_b64){
+      const img = document.getElementById(`scan-img-${scanId}`);
+      if(img) img.src = `data:image/jpeg;base64,${d.image_b64}`;
+    }
+  }catch(_){}
+}
+
+function viewScanImage(uid, sid){ loadScanImage(uid, sid); }
+function closeModal(){ document.getElementById('historyModal').style.display = 'none'; }
+
+// ── NOTES MODAL ───────────────────────────────────────────────
+function openNotes(apptId, label){
+  _notesApptId = apptId;
+  document.getElementById('notes-appt-label').textContent = label;
+  const appt = ALL_APPTS.find(a=>a.id===apptId);
+  document.getElementById('notes-input').value = appt?.doctor_notes || '';
+  document.getElementById('notesModal').style.display = 'flex';
+}
+async function saveNotes(){
+  const notes = document.getElementById('notes-input').value.trim();
+  try{
+    const r = await apiFetch(`/api/doctor/appointments/${_notesApptId}/notes`, 'PATCH', {notes});
+    const d = await r.json();
+    if(!d.success) throw new Error(d.error);
+    const appt = ALL_APPTS.find(a=>a.id===_notesApptId);
+    if(appt) appt.doctor_notes = notes;
+    closeNotesModal();
+    showToast('Notes saved','ok');
+  }catch(e){ showToast(e.message,'err'); }
+}
+function closeNotesModal(){ document.getElementById('notesModal').style.display = 'none'; }
+
+// ── TAB NAVIGATION ─────────────────────────────────────────────
+function showTab(tab){
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`tab-section-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ── FETCH HELPER ──────────────────────────────────────────────
+function apiFetch(url, method='GET', body=null){
+  const opts = { method, headers:{'Authorization':`Bearer ${TOKEN}`,'Content-Type':'application/json'} };
+  if(body) opts.body = JSON.stringify(body);
+  return fetch(API+url, opts);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function fmtDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+let _tt;
+function showToast(msg, type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show'+(type?' '+type:'');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.className='', 3200);
+}
+
+// Enter key on login
+document.getElementById('li-pwd').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>

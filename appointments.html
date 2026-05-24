@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Appointment — Youth Alchemy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF8F4; --fg:#1a1a1a; --muted-fg:#6b6b6b;
+  --card:#ffffff; --border:rgba(0,0,0,.08);
+  --primary:#92B4A0; --primary-fg:#ffffff;
+  --pink:#F8BBD0; --pink-hover:#F48FB1; --pink-dark:#4A2E2A;
+  --font-sans:'DM Sans',sans-serif; --font-serif:'Playfair Display',serif;
+  --radius:16px; --shadow:0 2px 16px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-serif)}
+a{text-decoration:none;color:inherit}
+
+/* NAV */
+#navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(251,248,244,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:72px;display:flex;align-items:center;padding:0 32px;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:8px;font-family:var(--font-serif);font-size:1.2rem;font-weight:500;color:var(--fg)}
+.nav-brand span{color:var(--primary)}
+.nav-back{height:38px;padding:0 18px;border:1px solid var(--border);border-radius:999px;font-family:var(--font-sans);font-size:.85rem;font-weight:600;background:none;cursor:pointer;color:var(--muted-fg);transition:all .2s}
+.nav-back:hover{border-color:var(--primary);color:var(--primary)}
+
+/* LAYOUT */
+.page{padding:100px 24px 60px;max-width:900px;margin:0 auto}
+.page-header{text-align:center;margin-bottom:48px}
+.page-header h1{font-size:clamp(2rem,5vw,3rem);font-weight:500;margin-bottom:12px}
+.page-header p{color:var(--muted-fg);font-size:1rem;max-width:480px;margin:0 auto}
+
+/* STEPS */
+.steps{display:flex;justify-content:center;gap:0;margin-bottom:48px}
+.step{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;color:var(--muted-fg)}
+.step.active{color:var(--primary)}
+.step.done{color:var(--primary)}
+.step-num{width:28px;height:28px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;transition:.2s}
+.step.active .step-num,.step.done .step-num{background:var(--primary);border-color:var(--primary);color:#fff}
+.step-line{width:48px;height:2px;background:var(--border);margin:0 8px;flex-shrink:0}
+.step-line.done{background:var(--primary)}
+
+/* CALENDAR */
+.calendar-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:28px;box-shadow:var(--shadow);margin-bottom:24px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cal-header h3{font-family:var(--font-serif);font-size:1.1rem}
+.cal-nav{width:34px;height:34px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cal-nav:hover{border-color:var(--primary);color:var(--primary)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-dow{font-size:.72rem;font-weight:700;color:var(--muted-fg);padding:4px 0;letter-spacing:.05em}
+.cal-day{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:all .15s;background:none}
+.cal-day:hover:not(.disabled):not(.empty){background:rgba(146,180,160,.12);border-color:rgba(146,180,160,.3)}
+.cal-day.today{color:var(--primary);font-weight:700}
+.cal-day.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+.cal-day.disabled{color:#ccc;cursor:not-allowed}
+.cal-day.empty{cursor:default}
+
+/* SLOTS */
+.slots-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:28px;box-shadow:var(--shadow);margin-bottom:24px}
+.slots-card h3{font-family:var(--font-serif);font-size:1.1rem;margin-bottom:6px}
+.slots-card p{font-size:.85rem;color:var(--muted-fg);margin-bottom:20px}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px}
+.slot{padding:10px 6px;border:1.5px solid var(--border);border-radius:10px;text-align:center;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;background:none;color:var(--fg)}
+.slot:hover:not(.booked){border-color:var(--primary);color:var(--primary);background:rgba(146,180,160,.06)}
+.slot.selected{background:var(--primary);border-color:var(--primary);color:#fff}
+.slot.booked{background:#f5f5f5;color:#bbb;border-color:transparent;cursor:not-allowed;text-decoration:line-through}
+.slots-loading{text-align:center;color:var(--muted-fg);font-size:.9rem;padding:20px}
+.legend{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted-fg)}
+.legend-dot{width:12px;height:12px;border-radius:3px}
+
+/* FORM */
+.form-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:28px;box-shadow:var(--shadow);margin-bottom:24px}
+.form-card h3{font-family:var(--font-serif);font-size:1.1rem;margin-bottom:4px}
+.form-card p{font-size:.85rem;color:var(--muted-fg);margin-bottom:24px}
+.form-group{margin-bottom:20px}
+label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--fg)}
+input{width:100%;height:44px;padding:0 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font-sans);font-size:.9rem;background:var(--bg);color:var(--fg);transition:border-color .2s;outline:none}
+input:focus{border-color:var(--primary)}
+input.err{border-color:#e57373}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:520px){.form-row{grid-template-columns:1fr}}
+.err-msg{font-size:.78rem;color:#e57373;margin-top:4px}
+
+/* SUMMARY */
+.summary-card{background:linear-gradient(135deg,rgba(146,180,160,.08),rgba(248,187,208,.08));border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px}
+.summary-card h3{font-family:var(--font-serif);font-size:1rem;margin-bottom:16px;color:var(--primary)}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.summary-row:last-child{border-bottom:none}
+.summary-row span:first-child{color:var(--muted-fg)}
+.summary-row span:last-child{font-weight:600}
+
+/* BUTTONS */
+.btn-pink{height:46px;padding:0 28px;background:var(--pink);color:#111;border:none;border-radius:999px;font-family:var(--font-sans);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(244,143,177,.3)}
+.btn-pink:hover:not(:disabled){background:var(--pink-hover);box-shadow:0 4px 14px rgba(244,143,177,.45)}
+.btn-pink:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{height:46px;padding:0 24px;background:none;border:1.5px solid var(--border);border-radius:999px;font-family:var(--font-sans);font-size:.9rem;font-weight:600;cursor:pointer;color:var(--fg);transition:all .2s}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:12px}
+
+/* SUCCESS */
+.success-card{text-align:center;background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:48px 32px;box-shadow:var(--shadow)}
+.success-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#92B4A0,#F8BBD0);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:2rem}
+.success-card h2{font-size:1.8rem;margin-bottom:12px}
+.success-card p{color:var(--muted-fg);margin-bottom:28px;max-width:380px;margin-left:auto;margin-right:auto}
+.appt-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(146,180,160,.1);border:1px solid rgba(146,180,160,.3);border-radius:12px;padding:14px 22px;margin-bottom:28px;font-size:.9rem}
+.appt-badge strong{color:var(--primary)}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:12px 22px;border-radius:999px;font-size:.85rem;font-weight:500;transition:.3s;z-index:999;pointer-events:none;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.error{background:#c62828}
+
+/* SCREEN TRANSITIONS */
+.screen{display:none}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen.active{animation:fadeIn .25s ease}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Youth <span>Alchemy</span>
+  </div>
+  <button class="nav-back" onclick="history.back()">← Back</button>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Book a Consultation</h1>
+    <p>Choose a date and time with your skincare specialist</p>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps" id="steps">
+    <div class="step active" id="s1"><div class="step-num">1</div> Date & Time</div>
+    <div class="step-line" id="l1"></div>
+    <div class="step" id="s2"><div class="step-num">2</div> Your Details</div>
+    <div class="step-line" id="l2"></div>
+    <div class="step" id="s3"><div class="step-num">3</div> Confirm</div>
+  </div>
+
+  <!-- SCREEN 1: DATE + TIME -->
+  <div class="screen active" id="screen1">
+    <div class="calendar-card">
+      <div class="cal-header">
+        <button class="cal-nav" id="prevBtn">&#8249;</button>
+        <h3 id="calMonthLabel"></h3>
+        <button class="cal-nav" id="nextBtn">&#8250;</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <div class="slots-card" id="slotsCard">
+      <h3 id="slotsTitle">Select a date to see available slots</h3>
+      <p id="slotsSubtitle">All times are in your local timezone</p>
+      <div id="slotsContainer"></div>
+      <div class="legend" id="slotsLegend" style="display:none">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div> Available</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f0f0f0;border:1px solid #ddd"></div> Booked</div>
+        <div class="legend-item"><div class="legend-dot" style="border:2px solid var(--primary)"></div> Selected</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <div></div>
+      <button class="btn-pink" id="toStep2Btn" onclick="goStep2()" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: DETAILS -->
+  <div class="screen" id="screen2">
+    <div class="form-card">
+      <h3>Your Contact Details</h3>
+      <p>We'll use these to confirm your appointment</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="inp-name" placeholder="Priya Sharma" oninput="clearErr('name')">
+          <div class="err-msg" id="err-name"></div>
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="inp-email" placeholder="priya@email.com" oninput="clearErr('email')">
+          <div class="err-msg" id="err-email"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="inp-phone" placeholder="+91 98765 43210" oninput="clearErr('phone')">
+        <div class="err-msg" id="err-phone"></div>
+      </div>
+      <div class="form-group">
+        <label>Skin Concern (optional)</label>
+        <input type="text" id="inp-concern" placeholder="e.g. Acne, Pigmentation, Anti-ageing…">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goStep1()">← Back</button>
+      <button class="btn-pink" onclick="goStep3()">Review Booking →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: CONFIRM -->
+  <div class="screen" id="screen3">
+    <div class="summary-card">
+      <h3>📋 Booking Summary</h3>
+      <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
+      <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
+      <div class="summary-row"><span>Name</span><span id="sum-name">—</span></div>
+      <div class="summary-row"><span>Email</span><span id="sum-email">—</span></div>
+      <div class="summary-row"><span>Phone</span><span id="sum-phone">—</span></div>
+      <div class="summary-row" id="sum-concern-row" style="display:none"><span>Concern</span><span id="sum-concern">—</span></div>
+    </div>
+    <div class="form-card" style="padding:20px">
+      <p style="font-size:.82rem;color:var(--muted-fg);margin:0">By confirming, you agree that this appointment is subject to availability. You'll receive a confirmation once submitted.</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goStep2()">← Edit Details</button>
+      <button class="btn-pink" id="confirmBtn" onclick="submitBooking()">✓ Confirm Appointment</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="screen" id="screenSuccess">
+    <div class="success-card">
+      <div class="success-icon">🌿</div>
+      <h2>Appointment Booked!</h2>
+      <p>Your consultation has been successfully scheduled. We look forward to seeing you.</p>
+      <div class="appt-badge">
+        <span>📅</span>
+        <span><strong id="suc-date"></strong> at <strong id="suc-time"></strong></span>
+      </div>
+      <div>
+        <button class="btn-pink" onclick="resetAll()">Book Another</button>
+        &nbsp;&nbsp;
+        <button class="btn-outline" onclick="location.href='/'">Go Home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = '';  // same origin — Flask serves this file
+
+// ── STATE ────────────────────────────────────────
+let state = { year:0, month:0, selectedDate:'', selectedSlot:'', name:'', email:'', phone:'', concern:'', doctorId:null };
+
+// ── INIT ─────────────────────────────────────────
+(function(){
+  const now = new Date();
+  state.year = now.getFullYear();
+  state.month = now.getMonth();
+  renderCalendar();
+})();
+
+// ── CALENDAR ─────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+document.getElementById('prevBtn').onclick = () => {
+  const now = new Date(); const nm = state.month - 1;
+  if(state.year < now.getFullYear() || (state.year === now.getFullYear() && nm < now.getMonth())) return;
+  if(nm < 0){ state.month = 11; state.year--; } else state.month = nm;
+  state.selectedDate = ''; state.selectedSlot = '';
+  renderCalendar(); clearSlots();
+};
+document.getElementById('nextBtn').onclick = () => {
+  const nm = state.month + 1;
+  if(nm > 11){ state.month = 0; state.year++; } else state.month = nm;
+  state.selectedDate = ''; state.selectedSlot = '';
+  renderCalendar(); clearSlots();
+};
+
+function renderCalendar(){
+  document.getElementById('calMonthLabel').textContent = `${MONTHS[state.month]} ${state.year}`;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = DAYS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const first = new Date(state.year, state.month, 1).getDay();
+  const total = new Date(state.year, state.month+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i=0;i<first;i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+  for(let d=1;d<=total;d++){
+    const date = new Date(state.year, state.month, d);
+    const iso = `${state.year}-${String(state.month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isPast = date < today;
+    const isToday = date.toDateString() === today.toDateString();
+    const isSelected = iso === state.selectedDate;
+    let cls = 'cal-day';
+    if(isPast) cls += ' disabled';
+    if(isToday) cls += ' today';
+    if(isSelected) cls += ' selected';
+    const disabled = isPast ? '' : `onclick="selectDate('${iso}')"`;
+    grid.innerHTML += `<div class="${cls}" ${disabled}>${d}</div>`;
+  }
+}
+
+function selectDate(iso){
+  state.selectedDate = iso; state.selectedSlot = '';
+  document.getElementById('toStep2Btn').disabled = true;
+  renderCalendar(); loadSlots(iso);
+}
+
+// ── SLOTS ─────────────────────────────────────────
+async function loadSlots(date){
+  const sc = document.getElementById('slotsContainer');
+  sc.innerHTML = `<div class="slots-loading">Loading available times…</div>`;
+  document.getElementById('slotsTitle').textContent = `Available times for ${formatDate(date)}`;
+  document.getElementById('slotsSubtitle').textContent = 'Tap a slot to select it';
+  document.getElementById('slotsLegend').style.display = 'flex';
+  try{
+    const doctorId = state.doctorId ? `&doctor_id=${state.doctorId}` : '';
+    const r = await fetch(`${API}/api/appointments/availability?date=${date}${doctorId}`);
+    const data = await r.json();
+    if(!data.success) throw new Error(data.error);
+    // Update state with resolved doctor_id for booking
+    if(data.doctor_id) state.doctorId = data.doctor_id;
+    if(data.day_off){
+      sc.innerHTML = `<div class="slots-loading" style="color:#e57373">🔴 ${data.reason || 'Doctor not available on this date.'}</div>`;
+      document.getElementById('slotsLegend').style.display = 'none';
+      return;
+    }
+    if(!data.all || data.all.length === 0){
+      sc.innerHTML = `<div class="slots-loading">No slots scheduled for this date.</div>`;
+      return;
+    }
+    renderSlots(data.available, data.booked, data.all);
+  }catch(e){
+    sc.innerHTML = `<div class="slots-loading" style="color:#e57373">Failed to load slots. Check the server is running.</div>`;
+  }
+}
+
+function renderSlots(avail, booked, all){
+  const sc = document.getElementById('slotsContainer');
+  if(!all || all.length === 0){ sc.innerHTML = '<div class="slots-loading">No slots configured.</div>'; return; }
+  sc.innerHTML = `<div class="slots-grid">${all.map(t => {
+    const isBooked = booked.includes(t);
+    const isSelected = t === state.selectedSlot;
+    let cls = 'slot';
+    if(isBooked) cls += ' booked';
+    if(isSelected) cls += ' selected';
+    const click = isBooked ? '' : `onclick="selectSlot('${t}')"`;
+    return `<button class="${cls}" ${click}>${t}</button>`;
+  }).join('')}</div>`;
+}
+
+function selectSlot(time){
+  state.selectedSlot = time;
+  document.getElementById('toStep2Btn').disabled = false;
+  // re-render slots to update selection highlight
+  document.querySelectorAll('.slot').forEach(el => {
+    el.classList.remove('selected');
+    if(el.textContent.trim() === time) el.classList.add('selected');
+  });
+  showToast(`Selected: ${time}`);
+}
+
+function clearSlots(){
+  document.getElementById('slotsContainer').innerHTML = '';
+  document.getElementById('slotsTitle').textContent = 'Select a date to see available slots';
+  document.getElementById('slotsLegend').style.display = 'none';
+}
+
+// ── NAVIGATION ────────────────────────────────────
+function goStep1(){ showScreen('screen1'); setStep(1); }
+function goStep2(){
+  if(!state.selectedDate || !state.selectedSlot){ showToast('Please select a date and time slot.','error'); return; }
+  showScreen('screen2'); setStep(2);
+}
+function goStep3(){
+  const name = document.getElementById('inp-name').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const phone = document.getElementById('inp-phone').value.trim();
+  let valid = true;
+  if(!name){ showErr('name','Name is required'); valid=false; }
+  if(!email || !email.includes('@') || !email.includes('.')){ showErr('email','Valid email required'); valid=false; }
+  if(!phone || phone.replace(/\D/g,'').length < 7){ showErr('phone','Valid phone required'); valid=false; }
+  if(!valid) return;
+  state.name=name; state.email=email; state.phone=phone;
+  state.concern = document.getElementById('inp-concern').value.trim();
+  // populate summary
+  document.getElementById('sum-date').textContent = formatDate(state.selectedDate);
+  document.getElementById('sum-time').textContent = state.selectedSlot;
+  document.getElementById('sum-name').textContent = state.name;
+  document.getElementById('sum-email').textContent = state.email;
+  document.getElementById('sum-phone').textContent = state.phone;
+  const cr = document.getElementById('sum-concern-row');
+  if(state.concern){ document.getElementById('sum-concern').textContent = state.concern; cr.style.display='flex'; }
+  else cr.style.display='none';
+  showScreen('screen3'); setStep(3);
+}
+
+// ── SUBMIT ────────────────────────────────────────
+async function submitBooking(){
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true; btn.textContent = 'Booking…';
+  try{
+    const r = await fetch(`${API}/api/appointments`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name:state.name, email:state.email, phone:state.phone, date:state.selectedDate, time:state.selectedSlot, doctor_id:state.doctorId, concern:state.concern })
+    });
+    const data = await r.json();
+    if(!data.success) throw new Error(data.error);
+    document.getElementById('suc-date').textContent = formatDate(state.selectedDate);
+    document.getElementById('suc-time').textContent = state.selectedSlot;
+    showScreen('screenSuccess');
+    document.getElementById('steps').style.display = 'none';
+  }catch(e){
+    showToast(e.message || 'Booking failed. Please try again.','error');
+    btn.disabled=false; btn.textContent='✓ Confirm Appointment';
+  }
+}
+
+function resetAll(){
+  state = { year:new Date().getFullYear(), month:new Date().getMonth(), selectedDate:'', selectedSlot:'', name:'', email:'', phone:'', concern:'', doctorId:null };
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-email').value='';
+  document.getElementById('inp-phone').value='';
+  document.getElementById('inp-concern').value='';
+  document.getElementById('steps').style.display='flex';
+  renderCalendar(); clearSlots();
+  goStep1();
+}
+
+// ── HELPERS ───────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setStep(n){
+  for(let i=1;i<=3;i++){
+    const el = document.getElementById('s'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    else if(i===n) el.classList.add('active');
+    if(i<3){
+      const line = document.getElementById('l'+i);
+      line.classList.toggle('done', i<n);
+    }
+  }
+}
+function formatDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function showErr(field, msg){ document.getElementById('inp-'+field).classList.add('err'); document.getElementById('err-'+field).textContent = msg; }
+function clearErr(field){ document.getElementById('inp-'+field).classList.remove('err'); document.getElementById('err-'+field).textContent=''; }
+let _toastTimer;
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show' + (type==='error'?' error':'');
+  clearTimeout(_toastTimer); _toastTimer = setTimeout(()=>t.className='', 3000);
+}
+</script>
+</body>
+</html>

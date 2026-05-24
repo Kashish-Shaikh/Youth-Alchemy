@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YouthAlchemy — Skin Progress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+
+:root{--bg:hsl(40,20%,97%);--fg:hsl(150,10%,15%);--card:#fff;--primary:hsl(146,25%,45%);--primary-lt:hsl(146,25%,95%);--secondary:hsl(25,30%,90%);--border:hsl(150,10%,90%);--muted-fg:hsl(150,5%,45%);--pink:#F8BBD0;--pink-hover:#F48FB1;--green:hsl(146,35%,45%);--amber:hsl(40,80%,52%);--red:hsl(0,65%,55%);--font-sans:'DM Sans',sans-serif;--font-serif:'Playfair Display',serif;--radius:14px;--shadow:0 2px 16px rgba(0,0,0,.06);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+#topnav{position:sticky;top:0;z-index:100;background:rgba(251,248,244,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;}
+.nav-inner{max-width:1240px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:14px;width:100%;}
+.nav-brand{display:flex;align-items:center;gap:9px;font-family:var(--font-serif);font-size:1.15rem;color:var(--fg);}
+.nav-brand-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--primary),hsl(146,35%,38%));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;}
+.nav-sep{width:1px;height:20px;background:var(--border);}
+.nav-page-label{font-size:.8rem;font-weight:700;letter-spacing:.05em;color:var(--muted-fg);text-transform:uppercase;}
+.nav-spacer{flex:1;}
+.nav-user{display:none;align-items:center;gap:8px;font-size:.84rem;font-weight:600;}
+.nav-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;}
+.nav-back{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px;border:1px solid var(--border);border-radius:999px;font-size:.82rem;font-weight:500;color:var(--muted-fg);transition:all .18s;background:#fff;}
+.nav-back:hover{border-color:var(--primary);color:var(--primary);}
+.nav-scan-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 18px;background:var(--pink);border:none;border-radius:999px;font-family:var(--font-sans);font-size:.83rem;font-weight:600;color:#111;cursor:pointer;transition:background .2s;}
+.nav-scan-btn:hover{background:var(--pink-hover);}
+.page{max-width:1240px;margin:0 auto;padding:32px 28px 72px;}
+.ph-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.ph-title{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:500;margin-bottom:10px;line-height:1.15;}
+.ph-sub{font-size:.9rem;color:var(--muted-fg);max-width:500px;line-height:1.7;margin-bottom:20px;}
+.ph-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.ph-pill{display:inline-flex;align-items:center;gap:6px;font-size:.77rem;font-weight:600;padding:5px 14px;border-radius:999px;background:var(--card);border:1px solid var(--border);}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:520px){.stat-row{grid-template-columns:1fr 1fr;gap:10px;}}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.09);}
+.stat-glow{position:absolute;top:-24px;right:-24px;width:80px;height:80px;border-radius:50%;opacity:.1;}
+.stat-lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:7px;}
+.stat-val{font-family:var(--font-serif);font-size:2rem;font-weight:600;line-height:1;color:var(--primary);margin-bottom:4px;}
+.stat-sub{font-size:.75rem;color:var(--muted-fg);}
+.stat-emoji{position:absolute;bottom:14px;right:14px;font-size:1.3rem;}
+.tf-banner{border-radius:var(--radius);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px;position:relative;overflow:hidden;}
+.tf-banner.pos{background:linear-gradient(135deg,hsl(146,30%,91%),hsl(146,20%,95%));border:1px solid rgba(146,180,160,.3);}
+.tf-banner.neg{background:linear-gradient(135deg,hsl(0,30%,96%),hsl(25,30%,97%));border:1px solid rgba(239,83,80,.15);}
+.tf-banner.neu{background:var(--secondary);border:1px solid var(--border);}
+.tf-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted-fg);margin-bottom:5px;}
+.tf-title{font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+.tf-desc{font-size:.82rem;color:var(--muted-fg);max-width:480px;line-height:1.6;}
+.tf-num{font-family:var(--font-serif);font-size:3rem;font-weight:600;line-height:1;text-align:right;}
+.tf-num.pos{color:var(--green);}
+.tf-num.neg{color:var(--red);}
+.tf-num.neu{color:var(--muted-fg);}
+.tf-num-lbl{font-size:.72rem;color:var(--muted-fg);text-align:right;margin-top:3px;}
+.sec-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
+.sec-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.sec-title{font-family:var(--font-sans);font-size:.95rem;font-weight:700;}
+.sec-desc{font-size:.76rem;color:var(--muted-fg);margin-top:2px;}
+.sec-body{padding:22px;}
+.range-tabs{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px;gap:2px;}
+.rt{padding:5px 13px;border-radius:999px;font-size:.77rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted-fg);transition:all .18s;font-family:var(--font-sans);}
+.rt.active{background:var(--card);color:var(--primary);box-shadow:0 1px 5px rgba(0,0,0,.08);}
+.chart-lg{position:relative;height:300px;}
+.chart-md{position:relative;height:240px;}
+@media(max-width:600px){.chart-lg{height:220px;}.chart-md{height:180px;}}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.ba-wrap{grid-template-columns:1fr;}}
+.ba-card{border-radius:12px;padding:18px;}
+.ba-card.before{background:rgba(239,83,80,.06);border:1px solid rgba(239,83,80,.15);}
+.ba-card.after{background:rgba(146,180,160,.08);border:1px solid rgba(146,180,160,.25);}
+.ba-label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px;}
+.ba-card.before .ba-label{color:var(--red);}
+.ba-card.after  .ba-label{color:var(--green);}
+.ba-item{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:.83rem;gap:8px;}
+.ba-item:last-child{border-bottom:none;}
+.ba-name{font-weight:600;color:var(--fg);min-width:100px;}
+.ba-bar-wrap{flex:1;height:5px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden;}
+.ba-bar-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.ba-pct{font-size:.75rem;font-weight:700;min-width:34px;text-align:right;}
+.concern-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.cpill{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .18s;color:var(--muted-fg);}
+.cpill.active{border-color:var(--primary);color:var(--primary);background:var(--primary-lt);}
+.timeline{display:flex;flex-direction:column;max-height:380px;overflow-y:auto;padding-right:4px;}
+.timeline::-webkit-scrollbar{width:3px;}
+.timeline::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.tl-row{display:flex;align-items:stretch;}
+.tl-spine{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;padding-top:6px;}
+.tl-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--primary);background:#fff;flex-shrink:0;}
+.tl-row.tl-latest .tl-dot{background:var(--primary);}
+.tl-line{flex:1;width:2px;background:var(--border);margin:3px 0;}
+.tl-row:last-child .tl-line{display:none;}
+.tl-body{flex:1;margin:0 0 10px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:12px;}
+.tl-row.tl-latest .tl-body{background:rgba(146,180,160,.07);border-color:rgba(146,180,160,.3);}
+.tl-date{font-size:.71rem;color:var(--muted-fg);margin-bottom:5px;}
+.tl-score-line{display:flex;align-items:baseline;gap:8px;}
+.tl-score{font-family:var(--font-serif);font-size:1.5rem;font-weight:600;}
+.tl-grade{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;}
+.tl-delta{font-size:.75rem;font-weight:700;}
+.tl-delta.up{color:var(--green);}
+.tl-delta.dn{color:var(--red);}
+.tl-concerns{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.tl-chip{font-size:.66rem;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.05);}
+.empty{text-align:center;padding:48px 20px;}
+.empty-icon{font-size:3rem;margin-bottom:14px;}
+.empty h3{font-size:1.2rem;margin-bottom:8px;}
+.empty p{font-size:.86rem;color:var(--muted-fg);max-width:320px;margin:0 auto 20px;line-height:1.65;}
+.btn-pink{height:44px;padding:0 26px;background:var(--pink);color:#111;border:none;border-radius:999px;font-family:var(--font-sans);font-size:.88rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .2s;}
+.btn-pink:hover{background:var(--pink-hover);}
+#login-gate{display:none;min-height:80vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px;}
+#login-gate .gi{font-size:3.5rem;margin-bottom:18px;}
+#login-gate h2{font-size:2rem;margin-bottom:10px;}
+#login-gate p{color:var(--muted-fg);max-width:360px;margin:0 auto 26px;line-height:1.7;}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:.85rem;box-shadow:0 4px 20px rgba(0,0,0,.1);transform:translateY(60px);opacity:0;transition:all .28s;pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1;}
+@media(max-width:600px){.page{padding:20px 14px 56px;}.sec-body{padding:14px;}.sec-head{padding:14px 16px;}.stat-row{grid-template-columns:1fr 1fr;gap:10px;}.stat-val{font-size:1.7rem;}}
+
+</style>
+</head>
+<body>
+<nav id="topnav">
+  <div class="nav-inner">
+    <div class="nav-brand"><div class="nav-brand-icon">🌿</div>YouthAlchemy</div>
+    <div class="nav-sep"></div>
+    <span class="nav-page-label">Skin Progress</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-user" id="nav-user"><div class="nav-avatar" id="nav-avatar">?</div><span id="nav-name"></span></div>
+    <a class="nav-back" href="/"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+    <button class="nav-scan-btn" onclick="window.location.href='/'">+ New Scan</button>
+  </div>
+</nav>
+
+<div id="login-gate">
+  <div class="gi">📊</div>
+  <h2>Sign in to track your skin</h2>
+  <p>Your transformation data is private. Log in to view your graphs and scan history.</p>
+  <a href="/" class="btn-pink" style="text-decoration:none;">Log In / Sign Up</a>
+</div>
+
+<div id="main-page" style="display:none;">
+<div class="page">
+  <div>
+    <div class="ph-eyebrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Skin Transformation</div>
+    <h1 class="ph-title">Your Skin Progress</h1>
+    <p class="ph-sub">Every scan is a data point on your journey to healthier skin. Track acne, oiliness, hydration, and pigmentation over time.</p>
+    <div class="ph-pills" id="ph-pills"></div>
+  </div>
+
+  <div class="tf-banner neu" id="tf-banner">
+    <div><div class="tf-lbl">Period Transformation</div><div class="tf-title" id="tf-title">Loading…</div><div class="tf-desc" id="tf-desc">Fetching scan history</div></div>
+    <div><div class="tf-num neu" id="tf-num">—</div><div class="tf-num-lbl">points change</div></div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-glow" style="background:var(--green);"></div><div class="stat-lbl">Latest Score</div><div class="stat-val" id="s-score">—</div><div class="stat-sub" id="s-score-sub">No scans yet</div><div class="stat-emoji">🔬</div></div>
+    <div class="stat-card"><div class="stat-glow" style="background:var(--amber);"></div><div class="stat-lbl">Best Score</div><div class="stat-val" id="s-best">—</div><div class="stat-sub" id="s-best-sub">Personal best</div><div class="stat-emoji">🏆</div></div>
+    <div class="stat-card"><div class="stat-glow" style="background:#1976d2;"></div><div class="stat-lbl">Total Change</div><div class="stat-val" id="s-change">—</div><div class="stat-sub">since first scan</div><div class="stat-emoji">📈</div></div>
+    <div class="stat-card"><div class="stat-glow" style="background:#e91e63;"></div><div class="stat-lbl">Total Scans</div><div class="stat-val" id="s-count">—</div><div class="stat-sub" id="s-avg">avg —</div><div class="stat-emoji">📷</div></div>
+  </div>
+
+  <div class="sec-card">
+    <div class="sec-head">
+      <div><div class="sec-title">Overall Skin Health Score</div><div class="sec-desc">0 = severe concerns · 100 = perfect skin</div></div>
+      <div class="range-tabs">
+        <button class="rt" onclick="setRange(7,this)">7D</button>
+        <button class="rt" onclick="setRange(30,this)">30D</button>
+        <button class="rt active" onclick="setRange(90,this)">90D</button>
+        <button class="rt" onclick="setRange(0,this)">All</button>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="chart-lg"><canvas id="chartScore"></canvas></div>
+      <div class="empty" id="emptyScore" style="display:none;"><div class="empty-icon">📈</div><h3>No scans in this range</h3><p>Scan your face to start building your timeline.</p><button class="btn-pink" onclick="window.location.href='/'">Scan Now →</button></div>
+    </div>
+  </div>
+
+  <div class="sec-card">
+    <div class="sec-head"><div><div class="sec-title">Skin Concern Trends</div><div class="sec-desc">Toggle concerns — track Acne, Oiliness, Hydration &amp; Pigmentation</div></div></div>
+    <div class="sec-body">
+      <div class="concern-pills" id="concern-pills"></div>
+      <div class="chart-lg"><canvas id="chartConcerns"></canvas></div>
+      <div class="empty" id="emptyConcerns" style="display:none;"><div class="empty-icon">🔬</div><p>Scan your face to see per-concern tracking.</p></div>
+    </div>
+  </div>
+
+  <div class="sec-card">
+    <div class="sec-head"><div><div class="sec-title">Before vs After</div><div class="sec-desc">First scan compared to most recent</div></div></div>
+    <div class="sec-body"><div class="ba-wrap" id="ba-wrap"><div class="empty" style="grid-column:1/-1;padding:28px 0;"><div class="empty-icon">📊</div><p>Need at least 2 scans for comparison.</p></div></div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="sec-card" style="margin-bottom:0;">
+      <div class="sec-head"><div class="sec-title">Grade Distribution</div></div>
+      <div class="sec-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div style="position:relative;width:180px;height:180px;">
+          <canvas id="chartGrade"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+            <div style="font-family:var(--font-serif);font-size:2rem;font-weight:600;color:var(--primary);" id="grade-center">—</div>
+            <div style="font-size:.7rem;color:var(--muted-fg);">most common</div>
+          </div>
+        </div>
+        <div id="grade-legend" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;"></div>
+      </div>
+    </div>
+    <div class="sec-card" style="margin-bottom:0;">
+      <div class="sec-head"><div class="sec-title">Latest Scan Breakdown</div></div>
+      <div class="sec-body"><div class="chart-md"><canvas id="chartLatestBar"></canvas></div><div class="empty" id="emptyLatest" style="display:none;padding:20px 0;"><p>No scans yet.</p></div></div>
+    </div>
+  </div>
+
+  <div class="sec-card">
+    <div class="sec-head">
+      <div class="sec-title">Scan History</div>
+      <span id="scan-count" style="font-size:.77rem;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--primary-lt);color:var(--primary);"></span>
+    </div>
+    <div class="sec-body" style="padding:16px 20px;">
+      <div class="timeline" id="timeline"><div class="empty"><div class="empty-icon">📷</div><h3>No scans yet</h3><p>Your history will appear here.</p><button class="btn-pink" onclick="window.location.href='/'">Scan My Face</button></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const TOKEN=localStorage.getItem('dermiq_token');
+const USER=JSON.parse(localStorage.getItem('dermiq_user')||'null');
+const CM={acne:{label:'Acne',color:'hsl(0,70%,60%)',emoji:'🔴'},hyperpigmentation:{label:'Pigmentation',color:'hsl(280,40%,55%)',emoji:'🟣'},dark_circles:{label:'Dark Circles',color:'hsl(220,50%,50%)',emoji:'🔵'},wrinkles:{label:'Wrinkles',color:'hsl(40,80%,52%)',emoji:'🟡'},redness:{label:'Oiliness/Redness',color:'hsl(10,70%,55%)',emoji:'🟠'},texture:{label:'Hydration/Texture',color:'hsl(170,50%,45%)',emoji:'🟢'},pores:{label:'Pores',color:'hsl(200,60%,50%)',emoji:'🔷'}};
+const GC={A:'hsl(146,35%,50%)',B:'hsl(80,40%,42%)',C:'hsl(45,70%,48%)',D:'hsl(28,70%,50%)',F:'hsl(0,60%,50%)'};
+let ALL=[],RANGE=90,AC=new Set(['acne','hyperpigmentation','redness','texture']),CH={};
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  if(!TOKEN||!USER){document.getElementById('login-gate').style.display='flex';return;}
+  const ini=USER.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const nu=document.getElementById('nav-user');nu.style.display='flex';
+  document.getElementById('nav-avatar').textContent=ini;
+  document.getElementById('nav-name').textContent=USER.name.split(' ')[0];
+  document.getElementById('main-page').style.display='block';
+  await load();
+});
+
+async function load(){
+  try{
+    const r=await fetch('/api/scan-history',{headers:{Authorization:'Bearer '+TOKEN}});
+    if(r.status===401){window.location.href='/';return;}
+    const d=await r.json();if(d.success)ALL=d.scans||[];renderAll();
+  }catch(e){toast('Server not reachable');renderAll();}
+}
+
+function setRange(d,btn){RANGE=d;document.querySelectorAll('.rt').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAll();}
+
+function getFilt(){
+  if(!RANGE)return[...ALL];
+  const c=new Date();c.setDate(c.getDate()-RANGE);
+  return ALL.filter(s=>new Date(s.created_at)>=c);
+}
+
+function renderAll(){
+  const f=getFilt();
+  renderHeader();renderBanner(f);renderStats();
+  renderScoreChart(f);renderConcernPills();renderConcernChart(f);
+  renderBA();renderGrade(f);renderLatestBar();renderTimeline();
+}
+
+function renderHeader(){
+  const el=document.getElementById('ph-pills');
+  if(!ALL.length){el.innerHTML='';return;}
+  const lat=ALL[ALL.length-1],first=new Date(ALL[0].created_at);
+  const days=Math.round((Date.now()-first)/86400000);
+  const gc=GC[lat.overall_grade]||'var(--primary)';
+  el.innerHTML=`<div class="ph-pill" style="background:rgba(146,180,160,.12);border-color:rgba(146,180,160,.3);color:var(--green);">✓ ${ALL.length} scan${ALL.length>1?'s':''} recorded</div>
+    <div class="ph-pill" style="background:${gc}12;border-color:${gc}40;color:${gc};">Latest: ${lat.overall_score}/100 · Grade ${lat.overall_grade}</div>
+    <div class="ph-pill">🗓 Tracking since ${days} day${days!==1?'s':''}</div>`;
+}
+
+function renderBanner(f){
+  const el=document.getElementById('tf-banner'),t=document.getElementById('tf-title'),d=document.getElementById('tf-desc'),n=document.getElementById('tf-num');
+  if(f.length<2){el.className='tf-banner neu';t.textContent='Start Scanning';n.textContent='—';n.className='tf-num neu';d.textContent='Complete your first scan to see transformation data.';return;}
+  const first=f[0],lat=f[f.length-1],diff=lat.overall_score-first.overall_score,pos=diff>=0,neu=Math.abs(diff)<0.5;
+  el.className='tf-banner '+(neu?'neu':pos?'pos':'neg');
+  t.textContent=neu?'Stable Skin Health':pos?'🎉 Skin Improving!':'⚠ Score Dropped';
+  d.textContent=neu?'Your score is holding steady. Keep your routine.':pos?`Improved by ${diff.toFixed(1)} pts in this period!`:`Score dropped ${Math.abs(diff).toFixed(1)} pts. Review your routine.`;
+  n.className='tf-num '+(neu?'neu':pos?'pos':'neg');
+  n.textContent=(pos&&!neu?'+':'')+(neu?'0':diff.toFixed(1));
+}
+
+function renderStats(){
+  if(!ALL.length)return;
+  const lat=ALL[ALL.length-1],prev=ALL.length>1?ALL[ALL.length-2]:null;
+  const scores=ALL.map(s=>s.overall_score),best=Math.max(...scores);
+  const diff=prev?(lat.overall_score-prev.overall_score):0;
+  const gc=GC[lat.overall_grade]||'var(--primary)';
+  const ss=document.getElementById('s-score');ss.textContent=lat.overall_score;ss.style.color=gc;
+  document.getElementById('s-score-sub').textContent=`Grade ${lat.overall_grade}${diff!==0?(diff>0?' ▲ +':' ▼ ')+Math.abs(diff).toFixed(1):''}`;
+  document.getElementById('s-best').textContent=best;
+  document.getElementById('s-best-sub').textContent='Grade '+ALL.find(s=>s.overall_score===best)?.overall_grade;
+  const totalD=lat.overall_score-ALL[0].overall_score;
+  const sc=document.getElementById('s-change');sc.textContent=(totalD>0?'+':'')+totalD.toFixed(1);sc.style.color=totalD>=0?'var(--green)':'var(--red)';
+  document.getElementById('s-count').textContent=ALL.length;
+  document.getElementById('s-avg').textContent='avg '+(scores.reduce((a,b)=>a+b,0)/ALL.length).toFixed(1)+'/100';
+}
+
+function renderScoreChart(f){
+  const cv=document.getElementById('chartScore'),emp=document.getElementById('emptyScore');
+  if(!f.length){cv.style.display='none';emp.style.display='block';return;}
+  cv.style.display='block';emp.style.display='none';
+  dest('chartScore');
+  CH.score=new Chart(cv,{type:'line',data:{labels:f.map(s=>fd(s.created_at)),datasets:[{label:'Skin Score',data:f.map(s=>s.overall_score),borderColor:'hsl(146,25%,45%)',backgroundColor:ctx=>{const{ctx:c,chartArea}=ctx.chart;if(!chartArea)return'transparent';const g=c.createLinearGradient(0,chartArea.top,0,chartArea.bottom);g.addColorStop(0,'rgba(146,180,160,.3)');g.addColorStop(1,'rgba(146,180,160,.01)');return g;},fill:true,tension:0.45,borderWidth:3,pointRadius:f.length<=25?5:2,pointHoverRadius:8,pointBackgroundColor:f.map(s=>sc(s.overall_score)),pointBorderColor:'#fff',pointBorderWidth:2}]},options:cOpts({yMax:100,tooltipFn:(i)=>{const s=f[i.dataIndex],p=f[i.dataIndex-1];const d=p?(s.overall_score-p.overall_score):null;return[`Grade: ${s.overall_grade}`,d!==null?`Change: ${d>0?'+':''}${d.toFixed(1)}`:'First scan'];}})});
+}
+
+function renderConcernPills(){
+  const keys=new Set();ALL.forEach(s=>Object.keys(s.concerns||{}).forEach(k=>keys.add(k)));
+  document.getElementById('concern-pills').innerHTML=[...keys].map(k=>{
+    const m=CM[k]||{label:k,color:'#888',emoji:'•'},active=AC.has(k);
+    return`<button class="cpill${active?' active':''}" onclick="togC('${k}',this)" style="${active?`border-color:${m.color};color:${m.color};background:${m.color}18;`:''}" data-color="${m.color}">${m.emoji} ${m.label}</button>`;
+  }).join('');
+}
+
+function togC(key,btn){
+  if(AC.has(key)){if(AC.size===1)return;AC.delete(key);btn.classList.remove('active');btn.style.borderColor=btn.style.color=btn.style.background='';}
+  else{AC.add(key);btn.classList.add('active');const c=btn.dataset.color;btn.style.borderColor=c;btn.style.color=c;btn.style.background=c+'18';}
+  renderConcernChart(getFilt());
+}
+
+function renderConcernChart(f){
+  const cv=document.getElementById('chartConcerns'),emp=document.getElementById('emptyConcerns');
+  const keys=[...AC],hasData=f.some(s=>keys.some(k=>s.concerns?.[k]));
+  if(!hasData||!f.length){cv.style.display='none';emp.style.display='block';return;}
+  cv.style.display='block';emp.style.display='none';
+  dest('chartConcerns');
+  CH.concerns=new Chart(cv,{type:'line',data:{labels:f.map(s=>fd(s.created_at)),datasets:keys.map(k=>{const m=CM[k]||{label:k,color:'#888'};return{label:m.label,data:f.map(s=>s.concerns?.[k]?.severity??null),borderColor:m.color,backgroundColor:m.color+'12',fill:false,tension:0.4,borderWidth:2.5,pointRadius:f.length<=25?4:2,pointHoverRadius:7,pointBackgroundColor:m.color,pointBorderColor:'#fff',pointBorderWidth:2,spanGaps:true};})},options:cOpts({yMax:100,legend:true})});
+}
+
+function renderBA(){
+  const el=document.getElementById('ba-wrap');
+  if(ALL.length<2){el.innerHTML='<div class="empty" style="grid-column:1/-1;padding:28px 0;"><div class="empty-icon">📊</div><p>Need at least 2 scans for comparison.</p></div>';return;}
+  const first=ALL[0],lat=ALL[ALL.length-1];
+  const keys=[...new Set([...Object.keys(first.concerns||{}),...Object.keys(lat.concerns||{})])];
+  const mi=(scan)=>keys.map(k=>{const c=scan.concerns?.[k],m=CM[k]||{label:k,color:'#888'},sev=c?.severity||0;
+    const bc=sev<30?'var(--green)':sev<60?'var(--amber)':'var(--red)';
+    return`<div class="ba-item"><span class="ba-name">${m.label}</span><div class="ba-bar-wrap"><div class="ba-bar-fill" style="width:${sev}%;background:${bc};"></div></div><span class="ba-pct" style="color:${bc};">${sev.toFixed(0)}%</span></div>`;
+  }).join('');
+  el.innerHTML=`<div class="ba-card before"><div class="ba-label">⬆ First Scan · ${fdf(first.created_at)}</div><div style="font-family:var(--font-serif);font-size:1.4rem;color:var(--red);margin-bottom:8px;">${first.overall_score}/100 <span style="font-size:.8rem;font-family:var(--font-sans);color:var(--muted-fg);">Grade ${first.overall_grade}</span></div>${mi(first)}</div>
+    <div class="ba-card after"><div class="ba-label">🎯 Latest · ${fdf(lat.created_at)}</div><div style="font-family:var(--font-serif);font-size:1.4rem;color:var(--green);margin-bottom:8px;">${lat.overall_score}/100 <span style="font-size:.8rem;font-family:var(--font-sans);color:var(--muted-fg);">Grade ${lat.overall_grade}</span></div>${mi(lat)}</div>`;
+}
+
+function renderGrade(f){
+  if(!f.length)return;
+  const counts={A:0,B:0,C:0,D:0,F:0};f.forEach(s=>{if(s.overall_grade in counts)counts[s.overall_grade]++;});
+  const most=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('grade-center').textContent=most?.[0]||'—';
+  const labels=Object.keys(counts).filter(g=>counts[g]>0),data=labels.map(g=>counts[g]),colors=labels.map(g=>GC[g]);
+  dest('chartGrade');
+  CH.grade=new Chart(document.getElementById('chartGrade'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:3,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`Grade ${i.label}: ${i.raw} scan${i.raw!==1?'s':''}`}}}}});
+  document.getElementById('grade-legend').innerHTML=labels.map((g,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;color:${colors[i]};"><div style="width:10px;height:10px;border-radius:3px;background:${colors[i]};"></div>Grade ${g} (${data[i]})</div>`).join('');
+}
+
+function renderLatestBar(){
+  const cv=document.getElementById('chartLatestBar'),emp=document.getElementById('emptyLatest');
+  if(!ALL.length){cv.style.display='none';emp.style.display='block';return;}
+  cv.style.display='block';emp.style.display='none';
+  const lat=ALL[ALL.length-1],concerns=Object.entries(lat.concerns||{});
+  if(!concerns.length)return;
+  dest('chartLatestBar');
+  CH.latBar=new Chart(cv,{type:'bar',data:{labels:concerns.map(([k])=>(CM[k]?.label||k).slice(0,12)),datasets:[{label:'Severity %',data:concerns.map(([,c])=>c.severity||0),backgroundColor:concerns.map(([,c])=>{const s=c.severity||0;return s<30?'hsl(146,35%,60%)':s<60?'hsl(40,80%,60%)':'hsl(0,60%,60%)';}),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,grid:{color:'hsl(150,10%,94%)'},ticks:{font:{size:11},callback:v=>v+'%'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+}
+
+function renderTimeline(){
+  const el=document.getElementById('timeline'),badge=document.getElementById('scan-count');
+  if(!ALL.length){badge.textContent='';el.innerHTML='<div class="empty"><div class="empty-icon">📷</div><h3>No scans yet</h3><p>Your history appears here.</p><button class="btn-pink" onclick="window.location.href='/'">Scan My Face</button></div>';return;}
+  badge.textContent=`${ALL.length} scan${ALL.length!==1?'s':''}`;
+  el.innerHTML=[...ALL].reverse().map((s,idx)=>{
+    const isL=idx===0,prev=[...ALL].reverse()[idx+1],delta=prev?(s.overall_score-prev.overall_score):null,gc=GC[s.overall_grade]||'var(--primary)';
+    const cs=Object.values(s.concerns||{}).filter(c=>c.severity>10).sort((a,b)=>b.severity-a.severity).slice(0,5);
+    return`<div class="tl-row${isL?' tl-latest':''}"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-body"><div class="tl-date">${fdf(s.created_at)}${isL?' · <strong style="color:var(--primary);">Latest</strong>':''}</div>
+      <div class="tl-score-line"><div class="tl-score" style="color:${gc};">${s.overall_score}</div><span style="font-size:.75rem;color:var(--muted-fg);">/100</span>
+      <div class="tl-grade" style="background:${gc}18;color:${gc};">Grade ${s.overall_grade}</div>
+      ${delta!==null?`<div class="tl-delta ${delta>=0?'up':'dn'}">${delta>0?'▲ +':delta<0?'▼ ':'→ '}${Math.abs(delta).toFixed(1)}</div>`:'<div style="font-size:.7rem;color:var(--muted-fg);">First scan</div>'}
+      </div>${cs.length?`<div class="tl-concerns">${cs.map(c=>{const m=Object.values(CM).find(m=>m.label===c.name)||{color:'#888'};return`<span class="tl-chip" style="background:${m.color}12;color:${m.color};">${c.name} ${c.severity.toFixed(0)}%</span>`;}).join('')}</div>`:''}</div></div>`;
+  }).join('');
+}
+
+function cOpts({yMax=100,legend=false,tooltipFn=null}={}){
+  return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:legend?{position:'bottom',labels:{font:{size:11,family:'DM Sans'},padding:14,usePointStyle:true,pointStyleWidth:10}}:{display:false},
+      tooltip:{backgroundColor:'#fff',borderColor:'hsl(150,10%,88%)',borderWidth:1,titleColor:'#1a2820',bodyColor:'#6b7c74',padding:12,
+        callbacks:{label:i=>`  ${i.dataset.label||'Score'}: ${i.raw}%`,afterLabel:tooltipFn?i=>tooltipFn(i).map(s=>`  ${s}`):undefined}}},
+    scales:{y:{min:0,max:yMax,grid:{color:'hsl(150,10%,94%)'},ticks:{font:{size:11,family:'DM Sans'},color:'hsl(150,5%,55%)',callback:v=>v+'%'}},
+      x:{grid:{display:false},ticks:{font:{size:10,family:'DM Sans'},color:'hsl(150,5%,55%)',maxRotation:0,maxTicksLimit:10}}}};
+}
+
+function dest(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+function fd(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+function fdf(iso){return new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function sc(s){return s>=75?'hsl(146,35%,50%)':s>=55?'hsl(40,80%,52%)':s>=35?'hsl(28,70%,50%)':'hsl(0,60%,50%)';}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.className='show';clearTimeout(el._t);el._t=setTimeout(()=>el.className='',4000);}
+</script>
+</body>
+</html>
