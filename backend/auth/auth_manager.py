@@ -19,7 +19,19 @@ try:
 except ImportError:
     USE_BCRYPT = False
 
-SECRET_KEY         = os.environ.get('DERMIQ_SECRET_KEY', 'dermiq-super-secret-change-in-prod-2025')
+SECRET_KEY = os.environ.get('DERMIQ_SECRET_KEY')
+if not SECRET_KEY:
+    if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('DEBUG') == '1':
+        # Dev-only fallback so local testing isn't blocked — never reaches prod
+        SECRET_KEY = 'dev-only-insecure-key-do-not-deploy'
+        print("[WARN] DERMIQ_SECRET_KEY not set — using INSECURE dev fallback. "
+              "This must NEVER happen in production.")
+    else:
+        raise RuntimeError(
+            "DERMIQ_SECRET_KEY environment variable is not set. "
+            "Refusing to start with no secret — this would let anyone forge login tokens. "
+            "Set DERMIQ_SECRET_KEY in your environment (e.g. a long random string) before running."
+        )
 TOKEN_EXPIRY_HOURS = int(os.environ.get('TOKEN_EXPIRY_HOURS', '72'))
 
 

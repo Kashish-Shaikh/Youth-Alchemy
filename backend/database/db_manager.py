@@ -192,6 +192,60 @@ class DBManager:
                 CREATE INDEX IF NOT EXISTS idx_appt_doctor_date ON appointments(doctor_id, date, time);
                 CREATE INDEX IF NOT EXISTS idx_avail_doctor     ON doctor_availability(doctor_id, day_of_week);
                 CREATE INDEX IF NOT EXISTS idx_override_doctor  ON doctor_schedule_override(doctor_id, override_date);
+
+                -- ── USER CONSENTS (Disclaimer + Privacy) ─────────────────
+                CREATE TABLE IF NOT EXISTS user_consents (
+                    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    consent_type TEXT    NOT NULL,
+                    version      TEXT    NOT NULL,
+                    ip_addr      TEXT    DEFAULT '',
+                    metadata     TEXT    DEFAULT '{}',
+                    created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_consents_user ON user_consents(user_id, consent_type, created_at DESC);
+
+                -- ── IMAGE AUDIT LOG ───────────────────────────────────────
+                CREATE TABLE IF NOT EXISTS image_audit_log (
+                    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    scan_id      INTEGER REFERENCES scans(id) ON DELETE SET NULL,
+                    action       TEXT    NOT NULL,
+                    image_hash   TEXT    DEFAULT '',
+                    anon_ref     TEXT    DEFAULT '',
+                    created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_audit_user ON image_audit_log(user_id, created_at DESC);
+
+                -- ── IMAGE QUALITY VALIDATION LOG ──────────────────────────
+                CREATE TABLE IF NOT EXISTS image_quality_log (
+                    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    valid          INTEGER DEFAULT 0,
+                    quality_score  INTEGER DEFAULT 0,
+                    issues_json    TEXT    DEFAULT '[]',
+                    metrics_json   TEXT    DEFAULT '{}',
+                    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_quality_user ON image_quality_log(user_id, created_at DESC);
+
+                -- ── FEEDBACK TABLE ────────────────────────────────────────
+                CREATE TABLE IF NOT EXISTS recommendation_feedback (
+                    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    scan_id                 INTEGER REFERENCES scans(id) ON DELETE SET NULL,
+                    rating                  INTEGER,
+                    was_useful              INTEGER,
+                    category                TEXT    DEFAULT 'overall',
+                    comment                 TEXT    DEFAULT '',
+                    followed_recommendation INTEGER,
+                    outcome_after_days      INTEGER,
+                    form_type               TEXT    DEFAULT 'standard',
+                    created_at              TEXT    NOT NULL DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_feedback_user   ON recommendation_feedback(user_id, created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_feedback_scan   ON recommendation_feedback(scan_id);
+                CREATE INDEX IF NOT EXISTS idx_feedback_rating ON recommendation_feedback(rating, created_at DESC);
             """)
         print(f"[DB] SQLite ready: {DB_PATH}")
 
@@ -737,8 +791,9 @@ class DBManager:
     #  APPOINTMENTS
     # ════════════════════════════════════════════════
 
-    def create_appointment(self, doctor_id: int, name: str, email: str,
+    def create_appointment(self, name: str, email: str,
                            phone: str, date: str, time: str,
+                           doctor_id: Optional[int] = None,
                            user_id: Optional[int] = None,
                            concern: str = '') -> int:
         """Book a slot — raises ValueError('SLOT_TAKEN') on conflict."""
@@ -761,18 +816,19 @@ class DBManager:
 
     def get_appointments_for_doctor(self, doctor_id: int,
                                     date_from: str = None, date_to: str = None) -> List[Dict]:
-        where = "WHERE a.doctor_id=?"
+        clauses = ["a.doctor_id=?"]
         params = [doctor_id]
         if date_from:
-            where += " AND a.date>=?"; params.append(date_from)
+            clauses.append("a.date>=?"); params.append(date_from)
         if date_to:
-            where += " AND a.date<=?"; params.append(date_to)
+            clauses.append("a.date<=?"); params.append(date_to)
+        where_sql = " AND ".join(clauses)
         with _get_conn() as conn:
             rows = conn.execute(
-                f"""SELECT a.*, u.name as user_display_name
-                    FROM appointments a
-                    LEFT JOIN users u ON a.user_id = u.id
-                    {where} ORDER BY a.date DESC, a.time ASC""",
+                "SELECT a.*, u.name as user_display_name "
+                "FROM appointments a "
+                "LEFT JOIN users u ON a.user_id = u.id "
+                "WHERE " + where_sql + " ORDER BY a.date DESC, a.time ASC",
                 params
             ).fetchall()
         return [dict(r) for r in rows]
@@ -889,3 +945,267 @@ class DBManager:
                 "SELECT time FROM appointments WHERE date=? AND status!='cancelled'", (date,)
             ).fetchall()
         return [r['time'] for r in rows]
+
+    # ════════════════════════════════════════════════
+    #  CONSENT MANAGEMENT  (Features 1 & 2)
+    # ════════════════════════════════════════════════
+
+    def record_consent(self, user_id: int, consent_type: str, version: str,
+                       ip_addr: str = '', metadata: str = '{}') -> int:
+        """Saves a consent record. Returns the new consent ID."""
+        with _get_conn() as conn:
+            cur = conn.execute(
+                """INSERT INTO user_consents
+                   (user_id, consent_type, version, ip_addr, metadata)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (user_id, consent_type, version, ip_addr, metadata)
+            )
+            return cur.lastrowid
+
+    def get_latest_consent(self, user_id: int, consent_type: str) -> dict:
+        """Returns the most recent consent record for a user+type, or {}."""
+        with _get_conn() as conn:
+            row = conn.execute(
+                """SELECT * FROM user_consents
+                   WHERE user_id = ? AND consent_type = ?
+                   ORDER BY created_at DESC LIMIT 1""",
+                (user_id, consent_type)
+            ).fetchone()
+            return dict(row) if row else {}
+
+    def has_valid_consent(self, user_id: int, consent_type: str,
+                          required_version: str) -> bool:
+        """Returns True if the user has accepted the required version."""
+        consent = self.get_latest_consent(user_id, consent_type)
+        return bool(consent) and consent.get('version') == required_version
+
+    def revoke_consent(self, user_id: int, consent_type: str, version: str) -> int:
+        """Marks the most recent matching consent as revoked. Returns rows affected."""
+        with _get_conn() as conn:
+            cur = conn.execute(
+                """UPDATE user_consents SET metadata = json_set(coalesce(metadata,'{}'), '$.revoked', 1)
+                   WHERE user_id = ? AND consent_type = ? AND version = ?""",
+                (user_id, consent_type, version)
+            )
+            return cur.rowcount
+
+    # ════════════════════════════════════════════════
+    #  IMAGE PRIVACY MANAGEMENT  (Feature 2)
+    # ════════════════════════════════════════════════
+
+    def delete_user_images(self, user_id: int) -> int:
+        """
+        Nulls out all stored image data for a user (immediate deletion).
+        Returns count of affected scans.
+        """
+        with _get_conn() as conn:
+            cur = conn.execute(
+                "UPDATE scans SET image_b64 = NULL WHERE user_id = ? AND image_b64 IS NOT NULL",
+                (user_id,)
+            )
+            affected = cur.rowcount
+            if affected > 0:
+                conn.execute(
+                    """INSERT INTO image_audit_log (user_id, action, created_at)
+                       VALUES (?, 'deleted', datetime('now'))""",
+                    (user_id,)
+                )
+            return affected
+
+    def delete_user_account(self, user_id: int) -> bool:
+        """
+        Full account deletion — removes user row; cascade deletes all related data.
+        Returns True on success.
+        """
+        with _get_conn() as conn:
+            conn.execute("UPDATE scans SET image_b64 = NULL WHERE user_id = ?", (user_id,))
+            conn.execute(
+                """INSERT INTO image_audit_log (user_id, action, created_at)
+                   VALUES (?, 'account_deleted', datetime('now'))""",
+                (user_id,)
+            )
+            conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            return True
+
+    def auto_expire_old_images(self, hours: int = 24) -> int:
+        """
+        Scheduled cleanup: nulls images older than `hours`.
+        Returns count of cleaned images.
+        """
+        cutoff = (datetime.datetime.utcnow() - datetime.timedelta(hours=hours)).isoformat()
+        with _get_conn() as conn:
+            cur = conn.execute(
+                """UPDATE scans SET image_b64 = NULL
+                   WHERE image_b64 IS NOT NULL AND created_at < ?""",
+                (cutoff,)
+            )
+            affected = cur.rowcount
+            if affected > 0:
+                conn.execute(
+                    """INSERT INTO image_audit_log (user_id, action, created_at)
+                       SELECT DISTINCT user_id, 'auto_expired', datetime('now')
+                       FROM scans WHERE user_id IS NOT NULL LIMIT 1"""
+                )
+            return affected
+
+    def log_image_action(self, user_id: int, scan_id: int,
+                         action: str, image_hash: str = '', anon_ref: str = '') -> int:
+        """Logs an image lifecycle event for audit purposes."""
+        with _get_conn() as conn:
+            cur = conn.execute(
+                """INSERT INTO image_audit_log
+                   (user_id, scan_id, action, image_hash, anon_ref)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (user_id, scan_id, action, image_hash, anon_ref)
+            )
+            return cur.lastrowid
+
+    # ════════════════════════════════════════════════
+    #  IMAGE QUALITY LOGGING  (Feature 3)
+    # ════════════════════════════════════════════════
+
+    def save_quality_log(self, user_id: int, valid: bool,
+                         quality_score: int, issues: list, metrics: dict) -> int:
+        """Saves an image quality validation result."""
+        with _get_conn() as conn:
+            cur = conn.execute(
+                """INSERT INTO image_quality_log
+                   (user_id, valid, quality_score, issues_json, metrics_json)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (user_id, int(valid), quality_score,
+                 json.dumps(issues), json.dumps(metrics))
+            )
+            return cur.lastrowid
+
+    def get_quality_stats(self, user_id: int) -> dict:
+        """Returns image quality history for a user."""
+        with _get_conn() as conn:
+            rows = conn.execute(
+                """SELECT valid, quality_score, issues_json, created_at
+                   FROM image_quality_log
+                   WHERE user_id = ?
+                   ORDER BY created_at DESC LIMIT 20""",
+                (user_id,)
+            ).fetchall()
+            items = [dict(r) for r in rows]
+            total = len(items)
+            passed = sum(1 for r in items if r['valid'])
+            return {
+                "total_attempts": total,
+                "passed": passed,
+                "failed": total - passed,
+                "pass_rate": round(passed / total * 100, 1) if total else 0,
+                "history": items
+            }
+
+    # ════════════════════════════════════════════════
+    #  FEEDBACK SYSTEM  (Feature 4)
+    # ════════════════════════════════════════════════
+
+    def save_feedback(self, user_id: int, scan_id, rating, was_useful,
+                      category: str = 'overall', comment: str = '',
+                      followed_recommendation=None, outcome_after_days=None,
+                      form_type: str = 'standard') -> int:
+        """Saves a feedback record. Returns new feedback ID."""
+        with _get_conn() as conn:
+            cur = conn.execute(
+                """INSERT INTO recommendation_feedback
+                   (user_id, scan_id, rating, was_useful, category, comment,
+                    followed_recommendation, outcome_after_days, form_type)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (user_id, scan_id, rating,
+                 int(was_useful) if was_useful is not None else None,
+                 category, comment,
+                 int(followed_recommendation) if followed_recommendation is not None else None,
+                 outcome_after_days, form_type)
+            )
+            return cur.lastrowid
+
+    def get_user_feedback(self, user_id: int, limit: int = 20) -> list:
+        """Returns a user's own feedback history."""
+        with _get_conn() as conn:
+            rows = conn.execute(
+                """SELECT f.*, s.overall_score, s.created_at as scan_date
+                   FROM recommendation_feedback f
+                   LEFT JOIN scans s ON f.scan_id = s.id
+                   WHERE f.user_id = ?
+                   ORDER BY f.created_at DESC LIMIT ?""",
+                (user_id, limit)
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def get_feedback_stats(self, user_id: int) -> dict:
+        """Returns aggregated feedback statistics for a user."""
+        with _get_conn() as conn:
+            row = conn.execute(
+                """SELECT
+                     COUNT(*)                              AS total,
+                     ROUND(AVG(CAST(rating AS FLOAT)), 2) AS avg_rating,
+                     SUM(CASE WHEN was_useful=1 THEN 1 ELSE 0 END) AS useful_count,
+                     SUM(CASE WHEN was_useful=0 THEN 1 ELSE 0 END) AS not_useful_count,
+                     SUM(CASE WHEN followed_recommendation=1 THEN 1 ELSE 0 END) AS followed_count
+                   FROM recommendation_feedback
+                   WHERE user_id = ?""",
+                (user_id,)
+            ).fetchone()
+            d = dict(row) if row else {}
+            total = d.get('total', 0) or 0
+            useful = d.get('useful_count', 0) or 0
+            d['usefulness_rate'] = round(useful / total * 100, 1) if total > 0 else 0
+            return d
+
+    def get_global_feedback_analytics(self) -> dict:
+        """Aggregated analytics (admin-only, anonymized)."""
+        with _get_conn() as conn:
+            overview = dict(conn.execute(
+                """SELECT
+                     COUNT(*)                              AS total_feedbacks,
+                     ROUND(AVG(CAST(rating AS FLOAT)), 2) AS avg_rating,
+                     SUM(CASE WHEN was_useful=1 THEN 1 ELSE 0 END)  AS total_useful,
+                     SUM(CASE WHEN was_useful=0 THEN 1 ELSE 0 END)  AS total_not_useful,
+                     COUNT(DISTINCT user_id)               AS unique_users
+                   FROM recommendation_feedback"""
+            ).fetchone() or {})
+
+            by_category = conn.execute(
+                """SELECT category,
+                     COUNT(*) AS count,
+                     ROUND(AVG(CAST(rating AS FLOAT)), 2) AS avg_rating,
+                     SUM(CASE WHEN was_useful=1 THEN 1 ELSE 0 END) AS useful
+                   FROM recommendation_feedback
+                   GROUP BY category
+                   ORDER BY count DESC"""
+            ).fetchall()
+
+            trend_30d = conn.execute(
+                """SELECT date(created_at) AS day,
+                     COUNT(*) AS count,
+                     ROUND(AVG(CAST(rating AS FLOAT)), 2) AS avg_rating
+                   FROM recommendation_feedback
+                   WHERE created_at >= date('now', '-30 days')
+                   GROUP BY day ORDER BY day ASC"""
+            ).fetchall()
+
+            return {
+                "overview": overview,
+                "by_category": [dict(r) for r in by_category],
+                "trend_30d": [dict(r) for r in trend_30d]
+            }
+
+    def get_recommendation_history(self, user_id: int, limit: int = 10) -> list:
+        """
+        Returns recent scans WITH their feedback, used for personalized future suggestions.
+        """
+        with _get_conn() as conn:
+            rows = conn.execute(
+                """SELECT
+                     s.id, s.created_at, s.overall_score, s.overall_grade,
+                     s.concerns_json, s.plan_text,
+                     f.rating, f.was_useful, f.comment, f.category
+                   FROM scans s
+                   LEFT JOIN recommendation_feedback f ON f.scan_id = s.id
+                   WHERE s.user_id = ?
+                   ORDER BY s.created_at DESC LIMIT ?""",
+                (user_id, limit)
+            ).fetchall()
+            return [dict(r) for r in rows]

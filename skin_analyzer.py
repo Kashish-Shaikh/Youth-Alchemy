@@ -69,6 +69,8 @@ class AnalysisResult:
 class SkinAnalyzer:
     def __init__(self):
         self.use_mediapipe = False
+        # Pre-allocate reusable CLAHE — avoids repeated allocation on each scan
+        self._clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
         self._init_detection()
 
     def _init_detection(self):
@@ -89,13 +91,16 @@ class SkinAnalyzer:
 
     def preprocess(self, image):
         h, w = image.shape[:2]
-        if w > 900:
-            scale = 900 / w
-            image = cv2.resize(image, (int(w*scale), int(h*scale)), interpolation=cv2.INTER_AREA)
-        denoised = cv2.bilateralFilter(image, 9, 75, 75)
+        # Resize to max 640px wide — sufficient accuracy, ~50% faster than 900px
+        if w > 640:
+            scale = 640 / w
+            image = cv2.resize(image, (int(w * scale), int(h * scale)),
+                               interpolation=cv2.INTER_AREA)
+        # Lighter bilateral (d=7 vs 9) — removes noise without extra blur passes
+        denoised = cv2.bilateralFilter(image, 7, 60, 60)
         lab = cv2.cvtColor(denoised, cv2.COLOR_BGR2LAB)
-        clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
-        lab[:, :, 0] = clahe.apply(lab[:, :, 0])
+        # Reuse cached CLAHE instance to avoid repeated allocation
+        lab[:, :, 0] = self._clahe.apply(lab[:, :, 0])
         return cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
     def detect_face(self, image):
@@ -421,9 +426,9 @@ class SkinAnalyzer:
             overall_score = round(100 - avg_sev, 1)
             overall_grade = self._grade(100 - overall_score)
 
-            # Annotate
+            # Annotate — compress at 72 quality: good for display, ~25% smaller payload
             annotated = self._annotate(img.copy(), concerns, rect, overall_score, overall_grade)
-            _, buf = cv2.imencode('.jpg', annotated, [cv2.IMWRITE_JPEG_QUALITY, 88])
+            _, buf = cv2.imencode('.jpg', annotated, [cv2.IMWRITE_JPEG_QUALITY, 72])
             b64 = base64.b64encode(buf).decode('utf-8')
 
             return AnalysisResult(concerns=concerns, overall_score=overall_score,

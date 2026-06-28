@@ -257,7 +257,7 @@ img{display:block;max-width:100%;}
 .step-circle{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1.5px solid var(--muted-fg);color:var(--muted-fg);background:var(--bg);position:relative;z-index:1;transition:all .3s;}
 .step-item.active .step-circle{border-color:var(--primary);color:var(--primary);box-shadow:0 0 0 4px rgba(146,180,160,.15);}
 .step-item.done .step-circle{background:var(--primary);border-color:var(--primary);color:#fff;}
-.step-label{font-size:11px;letter-spacing:.03em;color:var(--muted-fg);}
+.step-label{font-size:11px;letter-spacing:.03em;color:var(--muted-fg);position:relative;z-index:2;background:var(--bg);padding-right:4px;}
 .step-item.active .step-label{color:var(--fg);font-weight:600;}
 .step-item.done .step-label{color:var(--primary);}
 .m-panel{display:none;}
@@ -377,6 +377,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   .m-card{padding:24px;}
   .plan-body{padding:20px;}
   #app-modal{padding:90px 16px 60px;}
+  #captureGuidanceCard ul{grid-template-columns:1fr!important;}
 }
 
 /* ══ DETAIL RESULT TABS ══ */
@@ -882,10 +883,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 #skin-quiz::before{content:'';position:absolute;top:-80px;left:-80px;width:340px;height:340px;background:radial-gradient(circle,rgba(248,187,208,.45),transparent 70%);border-radius:50%;pointer-events:none;}
 #skin-quiz::after{content:'';position:absolute;bottom:-80px;right:-80px;width:340px;height:340px;background:radial-gradient(circle,rgba(167,217,185,.25),transparent 70%);border-radius:50%;pointer-events:none;}
 
-.quiz-wrap{max-width:1060px;margin:0 auto;position:relative;z-index:1;}
+.quiz-wrap{max-width:1200px;margin:0 auto;position:relative;z-index:1;padding:0 16px;}
 .quiz-eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--primary);margin-bottom:10px;}
-.quiz-title{font-family:var(--font-serif);font-size:clamp(2rem,4vw,2.8rem);font-weight:600;color:var(--fg);margin-bottom:10px;line-height:1.2;}
-.quiz-subtitle{font-size:.95rem;color:var(--muted-fg);margin-bottom:36px;max-width:640px;}
+.quiz-title{font-family:var(--font-serif);font-size:clamp(2rem,4vw,2.8rem);font-weight:600;color:var(--fg);margin-bottom:12px;line-height:1.2;}
+.quiz-subtitle{font-size:.95rem;color:var(--muted-fg);margin-bottom:36px;max-width:640px;line-height:1.7;}
 
 /* Progress bar */
 .quiz-progress-bar{width:100%;height:6px;background:var(--muted);border-radius:999px;margin-bottom:32px;overflow:hidden;}
@@ -956,10 +957,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
 <div class="quiz-wrap">
   <!-- Section header -->
-  <div style="text-align:center;margin-bottom:12px;">
+  <div style="text-align:center;margin-bottom:24px;">
     <p class="quiz-eyebrow">Skin Intelligence</p>
     <h2 class="quiz-title">Know Your Skin Type</h2>
-    <p class="quiz-subtitle">Answer 10 quick questions and get your personalised skin type analysis with expert care tips.</p>
+    <p class="quiz-subtitle" style="max-width:580px;margin:0 auto;font-size:1rem;line-height:1.7;color:var(--muted-fg);">Answer 10 carefully designed questions to discover your skin type and receive personalised skincare insights tailored to your unique skin profile.</p>
   </div>
 
   <!-- Quiz container -->
@@ -1320,31 +1321,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 </script>
 </section>
 
-<!-- ═══════════════ ANALYSIS ═════════════════ -->
-<section id="analysis">
-  <div class="container">
-    <div class="analysis-grid">
-      <div class="analysis-img-wrap" style="animation:fadeUp .6s ease both;">
-        <div class="analysis-img-glow"></div>
-        <div class="analysis-img">🔬</div>
-        <div class="analysis-overlay-card">
-          <div class="aoc-row"><span class="aoc-label">Analysis Complete</span><span class="aoc-val">98% Accuracy</span></div>
-          <div class="aoc-bar"><div class="aoc-fill"></div></div>
-        </div>
-      </div>
-      <div class="analysis-text" style="animation:fadeUp .6s .15s ease both;">
-        <h2>Clinical Precision,<br>From Your Phone</h2>
-        <p>Our proprietary computer vision models are trained on over 2 million dermatological images. We detect micro-wrinkles, hydration levels, pigmentation shifts, and barrier health invisible to the naked eye.</p>
-        <div class="analysis-features">
-          <div class="af-row"><div class="af-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8z" stroke-linecap="round"/></svg></div><div><div class="af-title">Deep Texture Analysis</div><div class="af-desc">Maps pore structure and skin elasticity.</div></div></div>
-          <div class="af-row"><div class="af-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg></div><div><div class="af-title">Pigmentation Profiling</div><div class="af-desc">Identifies sun damage and melanin distribution.</div></div></div>
-          <div class="af-row"><div class="af-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg></div><div><div class="af-title">Moisture Barrier Scan</div><div class="af-desc">Detects dehydration zones and oil balance.</div></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ═══════════════ RECOMMENDATIONS ═════════ -->
 
 
@@ -1353,13 +1329,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <style>
 /* ── Progress section expanded styles ── */
 #progress { padding:96px 0; background:var(--bg); }
-.progress-header { text-align:center; max-width:560px; margin:0 auto 48px; }
+.progress-header { text-align:center; max-width:640px; margin:0 auto 48px; padding:0 16px; }
 .progress-header h2 { font-size:clamp(1.8rem,3vw,2.5rem); margin-bottom:14px; }
 .progress-header p { color:var(--muted-fg); }
 
 /* Teaser card (clickable graph) */
 .prog-teaser {
-  max-width:860px; margin:0 auto;
+  max-width:1100px; margin:0 auto;
   background:#fff; border:1px solid var(--border);
   border-radius:24px; box-shadow:0 4px 32px rgba(0,0,0,.07);
   overflow:hidden; cursor:pointer;
@@ -1385,9 +1361,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
 /* Click ripple hint on the chart */
 .chart-click-hint {
-  position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
-  font-size:.73rem; color:var(--muted-fg); display:flex; align-items:center;
-  gap:6px; pointer-events:none; animation:hintPulse 2.5s ease infinite;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.73rem; color:var(--muted-fg);
+  gap:6px; pointer-events:none;
 }
 .chart-click-hint svg { width:13px; height:13px; }
 @keyframes hintPulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
@@ -1600,7 +1576,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .prog-collapse-btn svg { width:14px; height:14px; }
 </style>
 
-  <div class="container">
+  <div class="container" style="padding-left:24px;padding-right:24px;max-width:1240px;">
     <div class="progress-header">
       <h2>Track Your Transformation</h2>
       <p>Visualize your skin's health improvements over time with clinical grade tracking.</p>
@@ -1618,34 +1594,35 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           View My Progress
         </span>
       </div>
-      <div class="prog-teaser-chart">
-        <svg viewBox="0 0 700 220" preserveAspectRatio="none" style="width:100%;height:auto;display:block;">
+      <div class="prog-teaser-chart" id="prog-teaser-chart-wrap">
+        <svg id="prog-teaser-svg" viewBox="0 0 700 200" preserveAspectRatio="none" style="width:100%;height:auto;display:block;">
           <defs>
             <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stop-color="hsl(146,25%,45%)" stop-opacity=".28"/>
               <stop offset="95%" stop-color="hsl(146,25%,45%)" stop-opacity="0"/>
             </linearGradient>
           </defs>
-          <line x1="0" y1="55"  x2="700" y2="55"  stroke="hsl(150,10%,90%)" stroke-dasharray="4 3"/>
-          <line x1="0" y1="110" x2="700" y2="110" stroke="hsl(150,10%,90%)" stroke-dasharray="4 3"/>
-          <line x1="0" y1="165" x2="700" y2="165" stroke="hsl(150,10%,90%)" stroke-dasharray="4 3"/>
-          <path d="M0,165 C60,155 120,148 175,130 S290,100 350,78 S480,48 585,28 L700,18 L700,220 L0,220 Z" fill="url(#chartGrad)"/>
-          <path d="M0,165 C60,155 120,148 175,130 S290,100 350,78 S480,48 585,28 L700,18" fill="none" stroke="hsl(146,25%,45%)" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="0"   cy="165" r="5" fill="hsl(146,25%,45%)"/>
-          <circle cx="140" cy="134" r="5" fill="hsl(146,25%,45%)"/>
-          <circle cx="280" cy="107" r="5" fill="hsl(146,25%,45%)"/>
-          <circle cx="420" cy="72"  r="5" fill="hsl(146,25%,45%)"/>
-          <circle cx="560" cy="43"  r="5" fill="hsl(146,25%,45%)"/>
-          <circle cx="700" cy="18"  r="5" fill="hsl(146,25%,45%)"/>
-          <text x="0"   y="215" font-size="18" fill="hsl(150,5%,45%)" font-family="DM Sans">Week 1</text>
-          <text x="115" y="215" font-size="18" fill="hsl(150,5%,45%)" font-family="DM Sans">Week 2</text>
-          <text x="255" y="215" font-size="18" fill="hsl(150,5%,45%)" font-family="DM Sans">Week 3</text>
-          <text x="390" y="215" font-size="18" fill="hsl(150,5%,45%)" font-family="DM Sans">Week 4</text>
-          <text x="525" y="215" font-size="18" fill="hsl(150,5%,45%)" font-family="DM Sans">Week 5</text>
-          <text x="635" y="215" font-size="18" fill="hsl(150,5%,45%)" font-family="DM Sans">Week 6</text>
+          <line x1="0" y1="40"  x2="700" y2="40"  stroke="hsl(150,10%,90%)" stroke-dasharray="4 3"/>
+          <line x1="0" y1="95"  x2="700" y2="95"  stroke="hsl(150,10%,90%)" stroke-dasharray="4 3"/>
+          <line x1="0" y1="150" x2="700" y2="150" stroke="hsl(150,10%,90%)" stroke-dasharray="4 3"/>
+          <path d="M0,150 C60,140 120,133 175,115 S290,85 350,63 S480,33 585,13 L700,3 L700,200 L0,200 Z" fill="url(#chartGrad)"/>
+          <path d="M0,150 C60,140 120,133 175,115 S290,85 350,63 S480,33 585,13 L700,3" fill="none" stroke="hsl(146,25%,45%)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="0"   cy="150" r="5" fill="hsl(146,25%,45%)"/>
+          <circle cx="140" cy="119" r="5" fill="hsl(146,25%,45%)"/>
+          <circle cx="280" cy="92"  r="5" fill="hsl(146,25%,45%)"/>
+          <circle cx="420" cy="57"  r="5" fill="hsl(146,25%,45%)"/>
+          <circle cx="560" cy="28"  r="5" fill="hsl(146,25%,45%)"/>
+          <circle cx="700" cy="3"   r="5" fill="hsl(146,25%,45%)"/>
+          <!-- date labels injected by JS; static fallback shown until scans load -->
+          <text id="tsr-l0" x="0"   y="195" font-size="11" fill="hsl(150,5%,45%)" font-family="DM Sans">Scan 1</text>
+          <text id="tsr-l1" x="115" y="195" font-size="11" fill="hsl(150,5%,45%)" font-family="DM Sans">Scan 2</text>
+          <text id="tsr-l2" x="255" y="195" font-size="11" fill="hsl(150,5%,45%)" font-family="DM Sans">Scan 3</text>
+          <text id="tsr-l3" x="390" y="195" font-size="11" fill="hsl(150,5%,45%)" font-family="DM Sans">Scan 4</text>
+          <text id="tsr-l4" x="525" y="195" font-size="11" fill="hsl(150,5%,45%)" font-family="DM Sans">Scan 5</text>
+          <text id="tsr-l5" x="638" y="195" font-size="11" fill="hsl(150,5%,45%)" font-family="DM Sans">Scan 6</text>
         </svg>
       </div>
-      <div class="chart-click-hint">
+      <div class="chart-click-hint" style="position:relative;bottom:auto;left:auto;transform:none;justify-content:center;padding:0 0 16px;animation:hintPulse 2.5s ease infinite;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Click the graph to open your full skin tracking dashboard
       </div>
@@ -2162,6 +2139,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <h2 class="m-card-title">Live Face Scan</h2>
         <p class="m-card-desc">Position your face clearly in the camera. Good lighting gives the most accurate results.</p>
 
+        <!-- Capture guidance card -->
+        <div id="captureGuidanceCard" style="
+          margin-bottom:16px;
+          background:linear-gradient(135deg,rgba(146,180,160,.08),rgba(190,220,230,.1));
+          border:1px solid rgba(146,180,160,.3);
+          border-radius:14px;
+          padding:14px 18px;
+        ">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:1.1rem;">📷</span>
+            <span style="font-size:.82rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--primary);">For the most accurate skin analysis</span>
+          </div>
+          <ul style="margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;">
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Take the photo in bright, consistent lighting</li>
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Avoid shadows across your face</li>
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Hold the camera steady</li>
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Ensure your full face is visible</li>
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Remove glasses, masks, or face coverings</li>
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Look directly at the camera</li>
+            <li style="font-size:.8rem;color:var(--muted-fg);display:flex;align-items:flex-start;gap:6px;"><span style="color:var(--primary);margin-top:1px;">•</span>Keep the camera lens clean</li>
+          </ul>
+        </div>
+
         <!-- Webcam area -->
         <div class="webcam-area" id="webcamArea">
           <!-- State: idle (not started) -->
@@ -2186,6 +2186,25 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
         <!-- Camera permission error -->
         <div id="camError" style="display:none;margin-top:12px;padding:14px 18px;background:rgba(224,60,60,.05);border:1px solid rgba(224,60,60,.2);border-radius:12px;font-size:.84rem;color:#c62828;line-height:1.6;"></div>
+
+        <!-- Image validation error -->
+        <div id="imgValidationError" style="display:none;margin-top:12px;padding:16px 18px;background:rgba(224,140,60,.06);border:1px solid rgba(224,140,60,.25);border-radius:14px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <span style="font-size:1.3rem;flex-shrink:0;">⚠️</span>
+            <div>
+              <div id="imgValidationMsg" style="font-size:.88rem;color:#b45309;line-height:1.6;font-weight:600;margin-bottom:8px;"></div>
+              <button onclick="retakePhoto()" style="
+                display:inline-flex;align-items:center;gap:7px;
+                padding:9px 20px;border-radius:999px;border:none;cursor:pointer;
+                background:linear-gradient(135deg,var(--primary),#5a9e78);
+                color:#fff;font-family:var(--font-sans);font-size:.85rem;font-weight:700;
+                box-shadow:0 3px 14px rgba(146,180,160,.4);transition:all .2s;
+              " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                ↩ Retake Photo
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div class="cam-btn-row" style="margin-top:16px;">
           <button class="btn-pink" id="startCamBtn" onclick="startCamera()" style="height:44px;padding:0 26px;">📷 Open Camera</button>
@@ -2451,6 +2470,8 @@ function saveSession(token, user) {
   localStorage.setItem('youthalchemy_token', token);
   localStorage.setItem('youthalchemy_user', JSON.stringify(user));
   updateNavAuth(true);
+  // Pre-load scan history so teaser graph shows real dates immediately
+  tkLoadData().then(() => tkUpdateTeaserGraph()).catch(() => {});
 }
 
 function logout() {
@@ -2721,7 +2742,11 @@ function captureFrame() {
 
     // Store b64 for AI prompt
     const reader = new FileReader();
-    reader.onload = ev => { APP.capturedB64 = ev.target.result.split(',')[1]; };
+    reader.onload = ev => {
+      APP.capturedB64 = ev.target.result.split(',')[1];
+      // Run validation after b64 is ready
+      validateCapturedImage(canvas, ctx);
+    };
     reader.readAsDataURL(blob);
 
     // Switch UI to captured state
@@ -2733,7 +2758,105 @@ function captureFrame() {
     document.getElementById('retakeBtn').style.display   = '';
     document.getElementById('scanBtn').style.display     = '';
     document.getElementById('startCamBtn').style.display = 'none';
+    document.getElementById('imgValidationError').style.display = 'none';
   }, 'image/jpeg', 0.9);
+}
+
+// ── Image Quality Validation ────────────────────────────
+function validateCapturedImage(canvas, ctx) {
+  const w = canvas.width, h = canvas.height;
+  if (!w || !h) return; // can't validate
+
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+
+  // 1. Resolution check
+  if (w < 160 || h < 120) {
+    showValidationError('The image resolution is too low. Please allow camera access at higher resolution and retake the photo.');
+    return;
+  }
+
+  // 2. Brightness check — average luminance
+  let totalLum = 0;
+  const step = 4; // sample every 4th pixel for speed
+  let count = 0;
+  for (let i = 0; i < d.length; i += 4 * step) {
+    const r = d[i], g = d[i+1], b = d[i+2];
+    totalLum += 0.299*r + 0.587*g + 0.114*b;
+    count++;
+  }
+  const avgLum = totalLum / count;
+
+  if (avgLum < 40) {
+    showValidationError('Lighting is too low for an accurate skin assessment. Please move to a brighter area and retake the photo.');
+    return;
+  }
+  if (avgLum > 230) {
+    showValidationError('The image appears overexposed. Please avoid direct bright light and retake the photo.');
+    return;
+  }
+
+  // 3. Blur detection via edge variance (Laplacian approximation)
+  const grayCanvas = document.createElement('canvas');
+  grayCanvas.width = w; grayCanvas.height = h;
+  const gCtx = grayCanvas.getContext('2d');
+  gCtx.drawImage(canvas, 0, 0);
+  const gData = gCtx.getImageData(0, 0, w, h).data;
+
+  // Compute Laplacian variance on gray channel
+  let sum = 0, sumSq = 0, n = 0;
+  for (let y = 1; y < h - 1; y += 2) {
+    for (let x = 1; x < w - 1; x += 2) {
+      const idx = (y * w + x) * 4;
+      const gray = (gData[idx] + gData[idx+1] + gData[idx+2]) / 3;
+      const top    = ((( y-1)*w + x)*4);
+      const bot    = ((( y+1)*w + x)*4);
+      const left   = ((y*w + (x-1))*4);
+      const right  = ((y*w + (x+1))*4);
+      const tg = (gData[top]+gData[top+1]+gData[top+2])/3;
+      const bg = (gData[bot]+gData[bot+1]+gData[bot+2])/3;
+      const lg = (gData[left]+gData[left+1]+gData[left+2])/3;
+      const rg = (gData[right]+gData[right+1]+gData[right+2])/3;
+      const lap = Math.abs(tg + bg + lg + rg - 4*gray);
+      sum += lap; sumSq += lap*lap; n++;
+    }
+  }
+  const mean = sum / n;
+  const variance = (sumSq / n) - (mean * mean);
+
+  if (variance < 18) {
+    showValidationError('Your image appears blurry. Please hold the camera steady and retake the photo.');
+    return;
+  }
+
+  // 4. Face region check — look for skin-tone pixels in center region
+  const cx1 = Math.floor(w * 0.25), cx2 = Math.floor(w * 0.75);
+  const cy1 = Math.floor(h * 0.15), cy2 = Math.floor(h * 0.85);
+  let skinCount = 0, regionTotal = 0;
+  for (let y = cy1; y < cy2; y += 4) {
+    for (let x = cx1; x < cx2; x += 4) {
+      const idx = (y * w + x) * 4;
+      const r = d[idx], g = d[idx+1], b = d[idx+2];
+      // Skin tone heuristic: r>60, g>40, b>20, r>g>b, r-b>15
+      if (r > 60 && g > 40 && b > 20 && r > g && r > b && (r - b) > 15) skinCount++;
+      regionTotal++;
+    }
+  }
+  const skinRatio = skinCount / regionTotal;
+  if (skinRatio < 0.06) {
+    showValidationError('Your face is not fully visible in the frame. Please position your face in the centre of the camera and retake the photo.');
+    return;
+  }
+
+  // All checks passed — hide validation error (if any was showing)
+  document.getElementById('imgValidationError').style.display = 'none';
+}
+
+function showValidationError(msg) {
+  document.getElementById('imgValidationMsg').textContent = msg;
+  document.getElementById('imgValidationError').style.display = 'block';
+  // Hide the Analyse Skin button until they retake
+  document.getElementById('scanBtn').style.display = 'none';
 }
 
 function retakePhoto() {
@@ -2747,6 +2870,7 @@ function retakePhoto() {
   document.getElementById('startCamBtn').style.display = '';
   document.getElementById('scanResult').classList.remove('show');
   document.getElementById('camError').style.display = 'none';
+  document.getElementById('imgValidationError').style.display = 'none';
 }
 
 function stopCamera() {
@@ -2754,12 +2878,129 @@ function stopCamera() {
 }
 
 /* ═══════════════════════════════════════════════
+   CONSENT MODAL
+═══════════════════════════════════════════════ */
+function _injectConsentModal() {
+  if (document.getElementById('ya-consent-overlay')) return;
+  document.body.insertAdjacentHTML('beforeend',
+    '<div id="ya-consent-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;">' +
+      '<div style="background:#0f0f1a;border:1.5px solid #00ffb3;border-radius:18px;padding:36px 30px;max-width:500px;width:93%;font-family:sans-serif;color:#ddd;box-shadow:0 0 50px rgba(0,255,179,0.2);">' +
+        '<h2 style="margin:0 0 12px;color:#00ffb3;font-size:1.2rem;">&#9877;&#65039; Consent Required to Scan</h2>' +
+        '<div id="ya-cb" style="font-size:0.85rem;line-height:1.7;color:#bbb;background:#12122a;border-radius:10px;padding:14px;max-height:220px;overflow-y:auto;white-space:pre-wrap;margin-bottom:16px;border:1px solid #2a2a4a;"></div>' +
+        '<label style="display:flex;gap:10px;align-items:flex-start;font-size:0.85rem;color:#999;cursor:pointer;margin-bottom:20px;">' +
+          '<input type="checkbox" id="ya-ck" style="width:16px;height:16px;margin-top:3px;accent-color:#00ffb3;cursor:pointer;"> ' +
+          'I have read and agree to the Medical Disclaimer and Face Scan Privacy Policy above.' +
+        '</label>' +
+        '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+          '<button id="ya-dec" style="padding:9px 20px;border-radius:8px;border:1px solid #444;background:none;color:#888;cursor:pointer;">Decline</button>' +
+          '<button id="ya-agr" style="padding:9px 26px;border-radius:8px;border:none;background:#00ffb3;color:#0a0a14;font-weight:700;cursor:pointer;opacity:0.35;pointer-events:none;">I Agree &amp; Scan</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+  document.getElementById('ya-ck').addEventListener('change', function() {
+    var b = document.getElementById('ya-agr');
+    b.style.opacity = this.checked ? '1' : '0.35';
+    b.style.pointerEvents = this.checked ? 'auto' : 'none';
+  });
+}
+
+function _showConsentModal() {
+  return new Promise(async function(resolve) {
+    _injectConsentModal();
+    var overlay = document.getElementById('ya-consent-overlay');
+    var cb      = document.getElementById('ya-cb');
+    var ck      = document.getElementById('ya-ck');
+
+    cb.textContent = 'Loading…';
+    overlay.style.display = 'flex';
+    ck.checked = false;
+    document.getElementById('ya-agr').style.opacity = '0.35';
+    document.getElementById('ya-agr').style.pointerEvents = 'none';
+
+    try {
+      var h = { 'Authorization': 'Bearer ' + (APP.token || '') };
+      var results = await Promise.all([
+        fetch('/api/disclaimer',     { headers: h }).then(function(r){ return r.json(); }),
+        fetch('/api/privacy/policy', { headers: h }).then(function(r){ return r.json(); })
+      ]);
+      cb.textContent =
+        'MEDICAL DISCLAIMER\n' + (results[0].disclaimer || '') +
+        '\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nFACE SCAN PRIVACY POLICY\n' + (results[1].policy || '');
+    } catch(_) {
+      cb.textContent =
+        'MEDICAL DISCLAIMER\nThis skin analysis is for informational purposes only ' +
+        'and does NOT constitute medical advice. Always consult a qualified dermatologist.\n\n' +
+        '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nFACE SCAN PRIVACY POLICY\n' +
+        'Your photo is used only for on-server CV analysis and deleted within 24 hours.';
+    }
+
+    var agr = document.getElementById('ya-agr');
+    var dec = document.getElementById('ya-dec');
+    var newAgr = agr.cloneNode(true); agr.parentNode.replaceChild(newAgr, agr);
+    var newDec = dec.cloneNode(true); dec.parentNode.replaceChild(newDec, dec);
+
+    document.getElementById('ya-ck').onchange = function() {
+      var b = document.getElementById('ya-agr');
+      b.style.opacity = this.checked ? '1' : '0.35';
+      b.style.pointerEvents = this.checked ? 'auto' : 'none';
+    };
+    document.getElementById('ya-agr').onclick = function() {
+      if (!document.getElementById('ya-ck').checked) return;
+      overlay.style.display = 'none';
+      resolve(true);
+    };
+    document.getElementById('ya-dec').onclick = function() {
+      overlay.style.display = 'none';
+      resolve(false);
+    };
+  });
+}
+
+async function _recordAllConsents() {
+  try {
+    var r = await fetch('/api/consent/accept-all', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + (APP.token || ''), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accepted: true })
+    });
+    return r.ok;
+  } catch(_) { return false; }
+}
+
+/* ═══════════════════════════════════════════════
    SCAN
 ═══════════════════════════════════════════════ */
 async function runScan() {
   if (!APP.capturedBlob) { toast('Please capture a photo first.', true); return; }
-  if (!APP.token) { toast('Please log in first.', true); return; }
+  if (!APP.token)        { toast('Please log in first.', true); return; }
 
+  // Step 1: Check / obtain consent
+  try {
+    var stRes  = await fetch('/api/consent/status', {
+      headers: { 'Authorization': 'Bearer ' + APP.token }
+    });
+    var stData = await stRes.json();
+    var hasAll = stData.success &&
+                 stData.consents &&
+                 stData.consents.medical_disclaimer &&
+                 stData.consents.face_scan_privacy;
+
+    if (!hasAll) {
+      var agreed = await _showConsentModal();
+      if (!agreed) {
+        toast('Scan cancelled — please accept the consent to continue.', true);
+        return;
+      }
+      var saved = await _recordAllConsents();
+      if (!saved) {
+        toast('Could not save your consent. Please try again.', true);
+        return;
+      }
+    }
+  } catch(e) { /* fall through if consent check fails */ }
+
+  // Step 2: Run the scan
   showLoad('Analysing your skin…', 'Running computer vision scan');
   try {
     const fd = new FormData();
@@ -3118,7 +3359,7 @@ async function loadHistory() {
     card.style.display = 'block';
     list.innerHTML = history.map(h => `
       <div class="history-item">
-        <div><div class="history-date">${new Date(h.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        <div><div class="history-date">${_parseDate(h.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
         <div style="font-size:.78rem;color:var(--muted-fg);">${h.face_detected ? 'Face detected' : 'No face'} · ${h.has_plan ? 'Plan generated' : 'No plan'}</div></div>
         <div style="display:flex;gap:8px;align-items:center;">
           <div class="history-score">${h.overall_score}/100</div>
@@ -3354,6 +3595,7 @@ async function _revealPanel() {
   panel.scrollIntoView({behavior:'smooth', block:'start'});
   _setJournalDate();
   await tkLoadData();
+  tkUpdateTeaserGraph();
   tkRenderAll();
   // Show overview tab tooltip on very first open
   const tipKey = 'dermiq_tip_tab_overview';
@@ -3402,7 +3644,7 @@ async function tkLoadData() {
 /* ── Date helpers ────────────────────────────── */
 function tkDateOnly(dateStr) {
   // Returns 'YYYY-MM-DD' string for any scan's created_at
-  return new Date(dateStr).toISOString().slice(0, 10);
+  return _parseDate(dateStr).toISOString().slice(0, 10);
 }
 
 /* ── Deduplicate: keep only the LAST scan per calendar day ── */
@@ -3411,19 +3653,19 @@ function tkDeduplicateByDay(scans) {
   const map = new Map();
   scans.forEach(s => {
     const day = tkDateOnly(s.created_at);
-    if (!map.has(day) || new Date(s.created_at) > new Date(map.get(day).created_at)) {
+    if (!map.has(day) || _parseDate(s.created_at) > _parseDate(map.get(day).created_at)) {
       map.set(day, s);
     }
   });
   // Return sorted by date ascending
-  return [...map.values()].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  return [...map.values()].sort((a, b) => _parseDate(a.created_at) - _parseDate(b.created_at));
 }
 
 /* ── Count unique scan days within a range ─── */
 function tkUniqueScanDaysInRange(days) {
   if (!TK.allScans.length) return 0;
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-  const scansInRange = TK.allScans.filter(s => new Date(s.created_at) >= cutoff);
+  const scansInRange = TK.allScans.filter(s => _parseDate(s.created_at) >= cutoff);
   const uniqueDays = new Set(scansInRange.map(s => tkDateOnly(s.created_at)));
   return uniqueDays.size;
 }
@@ -3434,7 +3676,7 @@ function tkFilterScans() {
     return;
   }
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - TK.rangeDays);
-  const inRange = TK.allScans.filter(s => new Date(s.created_at) >= cutoff);
+  const inRange = TK.allScans.filter(s => _parseDate(s.created_at) >= cutoff);
   TK.scans = tkDeduplicateByDay(inRange);
 }
 
@@ -4017,12 +4259,61 @@ function _setJournalDate() {
   if (el) el.textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long'});
 }
 
+/* ── Teaser graph: update labels with real scan dates ── */
+function tkUpdateTeaserGraph() {
+  const all = TK.allScans;
+  if (!all || !all.length) return;
+
+  // Pick up to 6 evenly-spaced scans across the full history
+  const deduped = tkDeduplicateByDay(all);
+  const total   = deduped.length;
+  const picks   = [];
+  if (total <= 6) {
+    picks.push(...deduped);
+  } else {
+    for (let i = 0; i < 6; i++) {
+      const idx = Math.round((i / 5) * (total - 1));
+      picks.push(deduped[idx]);
+    }
+  }
+
+  // X positions matching the 6 circles in the SVG
+  const xPos = [0, 115, 255, 390, 525, 638];
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('tsr-l' + i);
+    if (!el) continue;
+    if (picks[i]) {
+      // Format as "5 Jun" style
+      const d = _parseDate(picks[i].created_at);
+      const label = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      el.textContent = label;
+      // Keep last label from overflowing right edge
+      el.setAttribute('x', String(xPos[i]));
+      if (i === 5) el.setAttribute('text-anchor', 'end');
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  // Also update the sub-heading in the teaser card to show last scan date
+  const subEl = document.querySelector('.prog-teaser-head p');
+  if (subEl && deduped.length) {
+    const lastScan = deduped[deduped.length - 1];
+    const lastDate = _parseDate(lastScan.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    subEl.textContent = `Last scanned: ${lastDate} · Click to explore your full tracking`;
+  }
+}
+
 /* ── Helpers ─────────────────────────────────── */
+function _parseDate(str) {
+  if (!str) return new Date(NaN);
+  return new Date(String(str).replace(' ', 'T'));
+}
 function tkFmtDate(iso) {
-  return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  return _parseDate(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
 }
 function tkFmtDateFull(iso) {
-  return new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  return _parseDate(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 function tkScoreColor(score) {
   if(score>=75)return'hsl(146,35%,50%)'; if(score>=55)return'hsl(40,80%,52%)'; return'hsl(0,60%,50%)';
@@ -4482,4 +4773,5 @@ function exportAdminCSV() {
   var blob = new Blob([csv], { type:'text/csv' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
-  a.href = url; a.dow
+  a.href = url; 
+}
