@@ -5,7 +5,8 @@ Usage:  python run.py
 Then open: http://localhost:5000
 """
 import os, sys
-
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND  = os.path.join(BASE_DIR, 'backend')
 sys.path.insert(0, BACKEND)

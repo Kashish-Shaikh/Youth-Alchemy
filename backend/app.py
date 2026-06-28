@@ -35,7 +35,7 @@ from ai_engine import AIEngine, PROVIDERS
 from auth.auth_manager import AuthManager
 from database.db_manager import DBManager
 from routes.feature_routes import feature_bp   # ← EDIT 1: new feature blueprint
-
+from routes.consent_routes import consent_bp   # ← FIX: consent gate blueprint
 try:
     sys.path.insert(0, os.path.join(ROOT_DIR, 'engine'))
     from rule_engine import RuleEngine, UserProfile as RuleProfile
@@ -47,7 +47,7 @@ except Exception as e:
 
 app = Flask(__name__, static_folder=os.path.join(ROOT_DIR, 'frontend'))
 app.register_blueprint(feature_bp)             # ← EDIT 2: register blueprint
-
+app.register_blueprint(consent_bp)              # ← FIX: was missing, caused "consent required" scan errors
 # ── CORS: explicit allow-list instead of "*" ────────────────────────────────
 # Set ALLOWED_ORIGINS in Vercel env vars, comma-separated, e.g.:
 #   ALLOWED_ORIGINS=https://youthalchemy.com,https://www.youthalchemy.com
@@ -119,7 +119,8 @@ PDF_FOLDER = os.path.join(ROOT_DIR, 'pdfs')
 pdf_rag    = PDFRagEngine(PDF_FOLDER)
 auth_mgr   = AuthManager()
 db_mgr     = DBManager()
-
+app.config['DB_MGR']   = db_mgr     # ← FIX: lets consent_routes.py reach this
+app.config['AUTH_MGR'] = auth_mgr
 if RULE_ENGINE_AVAILABLE:
     rule_engine      = RuleEngine()
     lifestyle_engine = LifestyleTipsEngine()
@@ -132,7 +133,11 @@ def get_current_user():
     h = request.headers.get('Authorization', '')
     if not h.startswith('Bearer '): return None, 'Missing Authorization header'
     payload, err = auth_mgr.verify_token(h.split(' ', 1)[1])
-    return (payload, None) if not err else (None, err)
+    if err: return None, err
+    # ← FIX: confirm the user in this token still actually exists in the DB
+    if not db_mgr.get_user_by_id(payload['user_id']):
+        return None, 'Session invalid — please log in again.'
+    return payload, None
 
 def require_auth(f):
     from functools import wraps
@@ -271,25 +276,7 @@ def api_scan():
             return jsonify({"success": False, "error": "Too many requests. Please wait a minute."}), 429
 
         # ── Gate 1: Medical disclaimer consent ───────────────────────────────
-        DISCLAIMER_VERSION = "1.0.0"
-        if not db_mgr.has_valid_consent(uid, 'medical_disclaimer', DISCLAIMER_VERSION):
-            return jsonify({
-                "success": False,
-                "error": "Medical disclaimer consent required before scanning.",
-                "action_required": "ACCEPT_DISCLAIMER",
-                "disclaimer_url": "/api/disclaimer"
-            }), 403
-
-        # ── Gate 2: Face-scan privacy consent ────────────────────────────────
-        PRIVACY_VERSION = "1.0.0"
-        if not db_mgr.has_valid_consent(uid, 'face_scan_privacy', PRIVACY_VERSION):
-            return jsonify({
-                "success": False,
-                "error": "Face scan privacy consent required before scanning.",
-                "action_required": "ACCEPT_PRIVACY_CONSENT",
-                "privacy_url": "/api/privacy/policy"
-            }), 403
-
+        
         # ── Image upload ──────────────────────────────────────────────────────
         if 'image' not in request.files:
             return jsonify({"success": False, "error": "No image provided."}), 400

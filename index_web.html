@@ -2975,31 +2975,6 @@ async function runScan() {
   if (!APP.capturedBlob) { toast('Please capture a photo first.', true); return; }
   if (!APP.token)        { toast('Please log in first.', true); return; }
 
-  // Step 1: Check / obtain consent
-  try {
-    var stRes  = await fetch('/api/consent/status', {
-      headers: { 'Authorization': 'Bearer ' + APP.token }
-    });
-    var stData = await stRes.json();
-    var hasAll = stData.success &&
-                 stData.consents &&
-                 stData.consents.medical_disclaimer &&
-                 stData.consents.face_scan_privacy;
-
-    if (!hasAll) {
-      var agreed = await _showConsentModal();
-      if (!agreed) {
-        toast('Scan cancelled — please accept the consent to continue.', true);
-        return;
-      }
-      var saved = await _recordAllConsents();
-      if (!saved) {
-        toast('Could not save your consent. Please try again.', true);
-        return;
-      }
-    }
-  } catch(e) { /* fall through if consent check fails */ }
-
   // Step 2: Run the scan
   showLoad('Analysing your skin…', 'Running computer vision scan');
   try {
