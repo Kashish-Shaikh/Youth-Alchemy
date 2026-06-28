@@ -1,21 +1,29 @@
-# Secrets — never commit these
-.env
-.env.*
-!.env.example
-
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
+
+# Virtual environments
 venv/
 .venv/
+env/
 
-# Database — don't commit real user data
-*.db
-*.sqlite
-*.sqlite3
+# Environment variables
+.env
 
-# OS / editor noise
-.DS_Store
+# VS Code
 .vscode/
-.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Build
+build/
+dist/
+
+# Testing
+.pytest_cache/
+.coverage
