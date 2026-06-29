@@ -3,7 +3,8 @@
 
 import os, json, urllib.request, urllib.error
 from typing import Optional
-
+from dotenv import load_dotenv
+load_dotenv()
 # Single provider: Ollama (fully local, no API key needed)
 PROVIDERS = {
     "ollama": {
@@ -89,44 +90,45 @@ def http_post(url, headers, body, timeout=90):
 
 
 
-def call_ollama(prompt):
-    import socket
+def call_groq(prompt):
+    import requests
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        raise Exception("GROQ_API_KEY environment variable is not set.")
+
     try:
-        s = socket.create_connection(("127.0.0.1", 11434), timeout=2); s.close()
-    except Exception:
-        raise Exception("Ollama is not running. Open a terminal and run: ollama serve")
-
-    with urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=4) as r:
-        models = [m["name"] for m in json.loads(r.read()).get("models", [])]
-
-    prefs = ["llama3.2", "llama3", "mistral", "gemma2", "llama2"]
-    model = next((m for p in prefs for m in models if p in m.lower()), models[0] if models else None)
-    if not model:
-        raise Exception("No model installed in Ollama. Run: ollama pull llama3")
-
-    body = {"model": model, "prompt": SYSTEM_PROMPT + "\n\n" + prompt, "stream": True}
-    req = urllib.request.Request("http://127.0.0.1:11434/api/generate",
-                                 data=json.dumps(body).encode(),
-                                 headers={"Content-Type": "application/json"}, method="POST")
-    collected = []
-    with urllib.request.urlopen(req, timeout=600) as resp:
-        while True:
-            line = resp.readline().strip()
-            if not line: break
-            try:
-                chunk = json.loads(line)
-                if chunk.get("response"): collected.append(chunk["response"])
-                if chunk.get("done"): break
-            except Exception: continue
-    return "".join(collected)
-
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama3-8b-8192",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": 1024
+            },
+            timeout=30
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"[Groq Error] {e}")
+        raise
 
 class AIEngine:
     def __init__(self, provider: str, api_key: str, pdf_folder: str):
         self.provider = provider
         self.api_key = api_key
         self.pdf_folder = pdf_folder
-
+    def __init__(self, provider: str, api_key: str, pdf_folder: str):
+        self.provider = provider
+        self.api_key = api_key
+        self.pdf_folder = pdf_folder
+        print(f"[DEBUG] GROQ_API_KEY present: {bool(os.environ.get('GROQ_API_KEY'))}")
     def generate(self, scan_result: dict, profile: dict,
                  rule_output: dict, pdf_context: str,
                  image_b64: str = None) -> str:
@@ -160,19 +162,20 @@ class AIEngine:
             print(f"[AIEngine] Intelligence layer skipped: {_il_err}")
         # ─────────────────────────────────────────────────────────
 
+        combined_context = (pdf_context + "\n\n" + intelligence_context)[:6000]  # hard cap
+
         prompt = PLAN_PROMPT.format(
-            scan_summary=scan_summary,
-            profile_summary=profile_summary,
-            rule_engine_output=rule_section,
-            knowledge_context=pdf_context + "\n\n" + intelligence_context
-        )
+             scan_summary=scan_summary,
+             profile_summary=profile_summary,
+             rule_engine_output=rule_section,
+             knowledge_context=combined_context
+            )
 
         try:
-            return call_ollama(prompt)
+            return call_groq(prompt)
         except Exception as e:
-            return (f"[ERROR — Ollama]\n\n{str(e)}\n\n"
-                    f"Make sure Ollama is running: open a terminal and run  ollama serve\n"
-                    f"Then install a model if needed: ollama pull llama3.2")
+            return (f"## WHAT YOUR SCAN FOUND\n\nCould not generate plan: {str(e)}\n\n"
+                    f"## YOUR SKIN PROFILE SUMMARY\n\nPlease check your GROQ_API_KEY is set correctly.")
 
     def _fmt_scan(self, scan: dict) -> str:
         lines = ["=== CV SCAN RESULTS ===",

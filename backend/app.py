@@ -9,7 +9,8 @@
 import os, sys, json, base64, traceback, datetime, hashlib, threading, time
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 
@@ -452,7 +453,7 @@ def api_generate():
         concern_keys = list(scan_result.get('concerns', {}).keys())
         profile_kws  = profile.get('concerns', []) + [profile.get('skin_type', '')]
         pdf_context  = pdf_rag.retrieve(concern_keys, profile_kws, max_chars=4500)
-        ai           = AIEngine(provider='ollama', api_key=os.environ.get('OLLAMA_API_KEY', ''), pdf_folder=PDF_FOLDER)
+        ai = AIEngine(provider='groq', api_key=os.environ.get("GROQ_API_KEY", ""), pdf_folder=PDF_FOLDER)
         plan_text    = ai.generate(scan_result=scan_result, profile=profile, rule_output=rule_output, pdf_context=pdf_context, image_b64=data.get('image_b64'))
         scan_id = scan_result.get('scan_id')
         if scan_id: db_mgr.update_scan_plan(scan_id=scan_id, user_id=request.current_user['user_id'], plan=plan_text)
